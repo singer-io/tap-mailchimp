@@ -6,6 +6,10 @@ FIELD_METADATA = {}
 
 PKS = {
     'campaigns': ['id'],
+    'list_members': ['id'],
+    'lists': ['id'],
+    'list_segments': ['id'],
+    'list_segment_members': ['id'],
     'reports_email_activity': []
 }
 

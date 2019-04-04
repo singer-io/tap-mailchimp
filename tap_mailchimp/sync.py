@@ -25,38 +25,64 @@ def write_schema(catalog, stream_id):
     schema = stream.schema.to_dict()
     singer.write_schema(stream_id, schema, stream.key_properties)
 
-def persist_records(catalog, stream_id, records):
+def process_records(catalog,
+                    stream_id,
+                    records,
+                    persist=True,
+                    bookmark_field=None,
+                    max_bookmark_field=None):
     stream = catalog.get_stream(stream_id)
     schema = stream.schema.to_dict()
     stream_metadata = metadata.to_map(stream.metadata)
     with metrics.record_counter(stream_id) as counter:
         for record in records:
-            with Transformer() as transformer:
-                record = transformer.transform(record,
-                                               schema,
-                                               stream_metadata)
-            singer.write_record(stream_id, record)
-            counter.increment()
+            if bookmark_field:
+                if max_bookmark_field is None or \
+                    record[bookmark_field] > max_bookmark_field:
+                    max_bookmark_field = record[bookmark_field]
+            if persist:
+                with Transformer() as transformer:
+                    record = transformer.transform(record,
+                                                   schema,
+                                                   stream_metadata)
+                singer.write_record(stream_id, record)
+                counter.increment()
+        return max_bookmark_field
 
-def get_bookmark(state, stream_name, default):
-    return (
-        state
-        .get('bookmarks', {})
-        .get(stream_name, default)
-    )
+def get_bookmark(state, path, default):
+    dic = state
+    for key in (['bookmarks'] + path):
+        if key in dic:
+            dic = dic[key]
+        else:
+            return default
+    return dic
+
+def nested_set(dic, path, value):
+    for key in path[:-1]:
+        dic = dic.setdefault(key, {})
+    dic[path[-1]] = value
+
+def write_bookmark(state, path, value):
+    nested_set(state, ['bookmarks'] + path, value)
+    singer.write_state(state)
 
 def sync_endpoint(client,
                   catalog,
                   state,
                   start_date,
                   stream_name,
+                  persist,
                   path,
                   data_key,
                   static_params,
-                  bookmark_query_field=None,
-                  bookmark_field=None):
-    last_datetime = get_bookmark(state, stream_name, start_date)
+                  bookmark_path,
+                  bookmark_query_field,
+                  bookmark_field):
+    bookmark_path = bookmark_path + ['datetime']
+    last_datetime = get_bookmark(state, bookmark_path, start_date)
     ids = []
+    max_bookmark_field = last_datetime
 
     def transform(record):
         ids.append(record['id'])
@@ -82,21 +108,83 @@ def sync_endpoint(client,
             endpoint=stream_name)
 
         raw_records = data.get(data_key)
+        # print(json.dumps(raw_records))
 
         if len(raw_records) < count:
             has_more = False
 
-        persist_records(catalog, stream_name, map(transform, raw_records))
+        max_bookmark_field = process_records(catalog,
+                                             stream_name,
+                                             map(transform, raw_records),
+                                             persist=persist,
+                                             bookmark_field=bookmark_field,
+                                             max_bookmark_field=max_bookmark_field)
+
+        if bookmark_field:
+            write_bookmark(state,
+                           bookmark_path,
+                           max_bookmark_field)
 
     return ids
 
-def get_email_activity_bookmark(state, campaign_id, default):
-    return (
-        state
-        .get('bookmarks', {})
-        .get('reports_email_activity', {})
-        .get(campaign_id, default)
-    )
+def get_dependants(endpoint_config):
+    dependants = endpoint_config.get('dependants', [])
+    for stream_name, child_endpoint_config in endpoint_config.get('children', {}).items():
+        dependants.append(stream_name)
+        dependants += get_dependants(child_endpoint_config)
+    return dependants
+
+def sync_stream(client,
+                catalog,
+                state,
+                start_date,
+                streams_to_sync,
+                id_bag,
+                stream_name,
+                endpoint_config,
+                bookmark_path=None,
+                id_path=None):
+    if not bookmark_path:
+        bookmark_path = [stream_name]
+    if not id_path:
+        id_path = []
+
+    dependants = get_dependants(endpoint_config)
+    should_stream, should_persist = should_sync_stream(streams_to_sync,
+                                                       dependants,
+                                                       stream_name)
+    if should_stream:
+        path = endpoint_config.get('path').format(*id_path)
+        stream_ids = sync_endpoint(client,
+                                   catalog,
+                                   state,
+                                   start_date,
+                                   stream_name,
+                                   should_persist,
+                                   path,
+                                   endpoint_config.get('data_path', stream_name),
+                                   endpoint_config.get('params', {}),
+                                   bookmark_path,
+                                   endpoint_config.get('bookmark_query_field'),
+                                   endpoint_config.get('bookmark_field'))
+
+        if endpoint_config.get('store_ids'):
+            id_bag[stream_name] = stream_ids
+        
+        children = endpoint_config.get('children')
+        if children:
+            for child_stream_name, child_endpoint_config in children.items():
+                for _id in stream_ids:
+                    sync_stream(client,
+                                catalog,
+                                state,
+                                start_date,
+                                streams_to_sync,
+                                id_bag,
+                                child_stream_name,
+                                child_endpoint_config,
+                                bookmark_path=bookmark_path + [_id, child_stream_name],
+                                id_path=id_path + [_id])
 
 def poll_email_activity(client, batch_id):
     sleep = 0
@@ -154,44 +242,54 @@ def stream_email_activity(client, catalog, state, archive_url):
                         else:
                             response = json.loads(operation['response'])
                             email_activities = response['emails']
-                            persist_records(catalog,
+                            max_bookmark_field = process_records(
+                                            catalog,
                                             'reports_email_activity',
-                                            transform_activities(email_activities))
-                        ## TODO: update bookmark using campaign_id
+                                            transform_activities(email_activities),
+                                            bookmark_field='timestamp',
+                                            max_bookmark_field=None)
+                            write_bookmark(state,
+                                           ['reports_email_activity', campaign_id],
+                                           max_bookmark_field)
                 file = tar.next()
     return failed_campaign_ids
 
 def sync_email_activity(client, catalog, state, start_date, campaign_ids):
-    LOGGER.info('reports_email_activity - Starting sync')
+    batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
 
-    operations = []
-    for campaign_id in campaign_ids:
-        since = get_email_activity_bookmark(state, campaign_id, start_date)
-        operations.append({
-            'method': 'GET',
-            'path': '/reports/{}/email-activity'.format(campaign_id),
-            'operation_id': campaign_id,
-            'params': {
-                'since': since
-            }
-        })
+    if batch_id:
+        LOGGER.info('reports_email_activity - Picking up previous run: {}'.format(batch_id))
+    else:
+        LOGGER.info('reports_email_activity - Starting sync')
 
-    print(operations)
+        operations = []
+        for campaign_id in campaign_ids:
+            since = get_bookmark(state, ['reports_email_activity', campaign_id], start_date)
+            operations.append({
+                'method': 'GET',
+                'path': '/reports/{}/email-activity'.format(campaign_id),
+                'operation_id': campaign_id,
+                'params': {
+                    'since': since
+                }
+            })
 
-    data = client.post(
-        '/batches',
-        json={
-            'operations': operations
-        },
-        endpoint='create_actvity_export')
+        data = client.post(
+            '/batches',
+            json={
+                'operations': operations
+            },
+            endpoint='create_actvity_export')
 
-    LOGGER.info('reports_email_activity - Job running: {}'.format(data['id']))
+        batch_id = data['id']
 
-    ## TODO: update state
+        LOGGER.info('reports_email_activity - Job running: {}'.format(batch_id))
 
-    data = poll_email_activity(client, data['id'])
+        write_bookmark(state, ['reports_email_activity_last_run_id'], batch_id)
 
-    print(data)
+    data = poll_email_activity(client, batch_id)
+
+    ## TODO: export expired?
 
     ## TODO: check num failed failed operations ??
 
@@ -213,39 +311,81 @@ def get_selected_streams(catalog):
             selected_streams.add(stream.tap_stream_id)
     return list(selected_streams)
 
-def should_sync_stream(selected_streams, last_stream, stream_name):
+def should_sync_stream(streams_to_sync, dependants, stream_name):
+    selected_streams = streams_to_sync['selected_streams']
+    should_persist = stream_name in selected_streams
+    last_stream = streams_to_sync['last_stream']
     if last_stream == stream_name or last_stream is None:
         if last_stream is not None:
-            last_stream = None
-        if stream_name in selected_streams:
-            return True, last_stream
-    return False, last_stream
+            streams_to_sync['last_stream'] = None
+            return True, should_persist
+        if should_persist or set(dependants).intersection(selected_streams):
+            return True, should_persist
+    return False, should_persist
 
 def sync(client, catalog, state, start_date):
-    selected_streams = get_selected_streams(catalog)
+    streams_to_sync = {
+        'selected_streams': get_selected_streams(catalog),
+        'last_stream': state.get('current_stream')
+    }
 
-    if not selected_streams:
+    if not streams_to_sync['selected_streams']:
         return
 
-    last_stream = state.get('current_stream')
+    id_bag = {}
 
-    should_stream, last_stream = should_sync_stream(selected_streams,
-                                                    last_stream,
-                                                    'campaigns')
+    endpoints = {
+        'lists': {
+            'path': '/lists',
+            'params': {
+                'sort_field': 'date_created',
+                'sort_dir': 'ASC'
+            },
+            'children': {
+               'list_members': {
+                    'path': '/lists/{}/members',
+                    'data_path': 'members',
+                    'bookmark_query_field': 'since_last_changed',
+                    'bookmark_field': 'last_changed'
+                },
+                'list_segments': {
+                    'path': '/lists/{}/segments',
+                    'data_path': 'segments',
+                    'children': {
+                        'list_segment_members': {
+                            'path': '/lists/{}/segments/{}/members',
+                            'data_path': 'members'
+                        }
+                    }
+                }
+            }
+        },
+        'campaigns': {
+            'dependants': [
+                'reports_email_activity'
+            ],
+            'path': '/campaigns',
+            'params': {
+                'status': 'sent',
+                'sort_field': 'send_time',
+                'sort_dir': 'ASC'
+            },
+            'store_ids': True
+        }
+    }
+
+    for stream_name, endpoint_config in endpoints.items():
+        sync_stream(client,
+                    catalog,
+                    state,
+                    start_date,
+                    streams_to_sync,
+                    id_bag,
+                    stream_name,
+                    endpoint_config)
+
+    should_stream, should_persist = should_sync_stream(streams_to_sync,
+                                                       [],
+                                                       'reports_email_activity')
     if should_stream:
-        campaign_ids = sync_endpoint(client,
-                                     catalog,
-                                     state,
-                                     start_date,
-                                     'campaigns',
-                                     '/campaigns',
-                                     'campaigns',
-                                     {
-                                        'status': 'sent',
-                                        'sort_field': 'send_time',
-                                        'sort_dir': 'ASC'
-                                     })
-
-    # sync_email_activity(client, catalog, state, start_date, campaign_ids)
-
-    # stream_email_activity(client, catalog, state, 'https://mailchimp-api-batch.s3.amazonaws.com/aeca9fbd30-response.tar.gz?AWSAccessKeyId=AKIAJO3NXSSIEMVRK7NQ&Expires=1553658340&Signature=mDK2%2BbHuAv1KCv3EFyWu%2BYWNp5Q%3D')
+        sync_email_activity(client, catalog, state, start_date, id_bag['campaigns'])
