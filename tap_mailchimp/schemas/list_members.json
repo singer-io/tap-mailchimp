@@ -55,6 +55,12 @@
             "null",
             "string"
           ]
+        },
+        "MMERGE3": {
+          "type": [
+            "null",
+            "string"
+          ]
         }
       }
     },

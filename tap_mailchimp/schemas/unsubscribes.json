@@ -1,0 +1,76 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "email_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "email_address": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "merge_fields": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "FNAME": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "LNAME": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
+    },
+    "vip": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "timestamp": {
+      "type": [
+        "null",
+        "string"
+      ],
+      "format": "date-time"
+    },
+    "reason": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "campaign_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "list_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "list_is_active": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    }
+  }
+}

@@ -5,12 +5,14 @@ SCHEMAS = {}
 FIELD_METADATA = {}
 
 PKS = {
+    'automations': ['id'],
     'campaigns': ['id'],
     'list_members': ['id'],
-    'lists': ['id'],
-    'list_segments': ['id'],
     'list_segment_members': ['id'],
-    'reports_email_activity': []
+    'list_segments': ['id'],
+    'lists': ['id'],
+    'reports_email_activity': [],
+    'unsubscribes': ['campaign_id', 'email_id']
 }
 
 def get_abs_path(path):

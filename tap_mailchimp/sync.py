@@ -20,21 +20,21 @@ def next_sleep_interval(previous_sleep_interval):
     max_interval = previous_sleep_interval * 2 or MIN_RETRY_INTERVAL
     return min(MAX_RETRY_INTERVAL, random.randint(min_interval, max_interval))
 
-def write_schema(catalog, stream_id):
-    stream = catalog.get_stream(stream_id)
+def write_schema(catalog, stream_name):
+    stream = catalog.get_stream(stream_name)
     schema = stream.schema.to_dict()
-    singer.write_schema(stream_id, schema, stream.key_properties)
+    singer.write_schema(stream_name, schema, stream.key_properties)
 
 def process_records(catalog,
-                    stream_id,
+                    stream_name,
                     records,
                     persist=True,
                     bookmark_field=None,
                     max_bookmark_field=None):
-    stream = catalog.get_stream(stream_id)
+    stream = catalog.get_stream(stream_name)
     schema = stream.schema.to_dict()
     stream_metadata = metadata.to_map(stream.metadata)
-    with metrics.record_counter(stream_id) as counter:
+    with metrics.record_counter(stream_name) as counter:
         for record in records:
             if bookmark_field:
                 if max_bookmark_field is None or \
@@ -45,7 +45,7 @@ def process_records(catalog,
                     record = transformer.transform(record,
                                                    schema,
                                                    stream_metadata)
-                singer.write_record(stream_id, record)
+                singer.write_record(stream_name, record)
                 counter.increment()
         return max_bookmark_field
 
@@ -85,9 +85,13 @@ def sync_endpoint(client,
     max_bookmark_field = last_datetime
 
     def transform(record):
-        ids.append(record['id'])
+        _id = record.get('id')
+        if _id:
+            ids.append(_id)
         del record['_links']
         return record
+
+    write_schema(catalog, stream_name)
 
     count = 1000
     offset = 0
@@ -102,13 +106,18 @@ def sync_endpoint(client,
         if bookmark_query_field:
             params[bookmark_query_field] = last_datetime
 
+        LOGGER.info('{} - Syncing - {}count: {}, offset: {}'.format(
+            stream_name,
+            'since: {}, '.format(last_datetime) if bookmark_query_field else '',
+            count,
+            offset))
+
         data = client.get(
             path,
             params=params,
             endpoint=stream_name)
 
         raw_records = data.get(data_key)
-        # print(json.dumps(raw_records))
 
         if len(raw_records) < count:
             has_more = False
@@ -213,6 +222,8 @@ def poll_email_activity(client, batch_id):
         time.sleep(sleep)
 
 def stream_email_activity(client, catalog, state, archive_url):
+    stream_name = 'reports_email_activity'
+
     def transform_activities(records):
         for record in records:
             if 'activity' in record:
@@ -226,6 +237,8 @@ def stream_email_activity(client, catalog, state, archive_url):
                     for key, value in activity.items():
                         new_activity[key] = value
                     yield new_activity
+
+    write_schema(catalog, stream_name)
 
     failed_campaign_ids = []
     with client.request('GET', url=archive_url, s3=True, endpoint='s3') as response:
@@ -244,12 +257,12 @@ def stream_email_activity(client, catalog, state, archive_url):
                             email_activities = response['emails']
                             max_bookmark_field = process_records(
                                             catalog,
-                                            'reports_email_activity',
+                                            stream_name,
                                             transform_activities(email_activities),
                                             bookmark_field='timestamp',
                                             max_bookmark_field=None)
                             write_bookmark(state,
-                                           ['reports_email_activity', campaign_id],
+                                           [stream_name, campaign_id],
                                            max_bookmark_field)
                 file = tar.next()
     return failed_campaign_ids
@@ -370,7 +383,15 @@ def sync(client, catalog, state, start_date):
                 'sort_field': 'send_time',
                 'sort_dir': 'ASC'
             },
-            'store_ids': True
+            'store_ids': True,
+            'children': {
+               'unsubscribes': {
+                    'path': '/reports/{}/unsubscribed'
+                }
+            }
+        },
+        'automations': {
+            'path': '/automations'
         }
     }
 
