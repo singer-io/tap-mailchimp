@@ -134,6 +134,8 @@ def sync_endpoint(client,
                            bookmark_path,
                            max_bookmark_field)
 
+        offset += count
+
     return ids
 
 def get_dependants(endpoint_config):
