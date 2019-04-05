@@ -61,6 +61,18 @@
             "null",
             "string"
           ]
+        },
+        "ADDRESS": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PHONE": {
+          "type": [
+            "null",
+            "string"
+          ]
         }
       }
     },

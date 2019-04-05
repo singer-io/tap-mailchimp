@@ -32,9 +32,43 @@
       ]
     },
     "merge_fields": {
-      "FNAME": "Jake",
-      "LNAME": "Stein",
-      "MMERGE3": "DOS/OPS"
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "FNAME": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "LNAME": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "MMERGE3": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ADDRESS": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "PHONE": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
     },
     "stats": {
       "type": [
