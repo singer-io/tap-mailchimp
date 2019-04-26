@@ -102,3 +102,19 @@ venv.bak/
 
 # mypy
 .mypy_cache/
+
+# Mac
+._*
+.DS_Store
+
+# Custom stuff
+env.sh
+config.json
+test.*.json
+*.txt
+.autoenv.zsh
+
+rsa-key
+tags
+singer-check-tap-data
+state.json
