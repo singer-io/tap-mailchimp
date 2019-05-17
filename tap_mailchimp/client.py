@@ -35,8 +35,8 @@ class MailchimpClient(object):
 
     @backoff.on_exception(backoff.expo,
                           (Server5xxError, ConnectionError),
-                          max_tries=5,
-                          factor=2)
+                          max_tries=6,
+                          factor=3)
     def request(self, method, path=None, url=None, s3=False, **kwargs):
         if url is None and self.__base_url is None:
             self.get_base_url()
