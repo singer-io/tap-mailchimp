@@ -15,7 +15,7 @@ LOGGER = singer.get_logger()
 
 MIN_RETRY_INTERVAL = 2 # 2 seconds
 MAX_RETRY_INTERVAL = 300 # 5 minutes
-MAX_RETRY_ELAPSED_TIME = 18000 # 5 hours
+MAX_RETRY_ELAPSED_TIME = 43200 # 12 hours
 
 class BatchExpiredError(Exception):
     pass
@@ -218,9 +218,17 @@ def poll_email_activity(client, batch_id):
     while True:
         data = get_batch_info(client, batch_id)
 
-        LOGGER.info('reports_email_activity - Job polling: {} - {}'.format(
+        progress = ''
+        if data['total_operations'] > 0:
+            progress = ' ({}/{} {:.2f}%)'.format(
+                data['finished_operations'],
+                data['total_operations'],
+                (data['finished_operations'] / data['total_operations']) * 100.0)
+
+        LOGGER.info('reports_email_activity - Job polling: {} - {}{}'.format(
             data['id'],
-            data['status']))
+            data['status'],
+            progress))
 
         if data['status'] == 'finished':
             return data
