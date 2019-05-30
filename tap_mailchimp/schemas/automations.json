@@ -276,6 +276,24 @@
             "null",
             "string"
           ]
+        },
+        "runtime": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "workflow_title": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "workflow_emails_count": {
+          "type": [
+            "null",
+            "integer"
+          ]
         }
       }
     },
