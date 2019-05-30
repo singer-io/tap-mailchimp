@@ -8,12 +8,17 @@ from datetime import datetime, timedelta
 import requests
 import singer
 from singer import metrics, metadata, Transformer
+from singer.utils import strptime_to_utc
+from requests.exceptions import HTTPError
 
 LOGGER = singer.get_logger()
 
 MIN_RETRY_INTERVAL = 2 # 2 seconds
 MAX_RETRY_INTERVAL = 300 # 5 minutes
-MAX_RETRY_ELAPSED_TIME = 3600 # 1 hour
+MAX_RETRY_ELAPSED_TIME = 18000 # 5 hours
+
+class BatchExpiredError(Exception):
+    pass
 
 def next_sleep_interval(previous_sleep_interval):
     min_interval = previous_sleep_interval or MIN_RETRY_INTERVAL
@@ -197,13 +202,21 @@ def sync_stream(client,
                                 bookmark_path=bookmark_path + [_id, child_stream_name],
                                 id_path=id_path + [_id])
 
+def get_batch_info(client, batch_id):
+    try:
+        return client.get(
+            '/batches/{}'.format(batch_id),
+            endpoint='get_batch_info')
+    except HTTPError as e:
+        if e.response.status_code == 404:
+            raise BatchExpiredError('Batch {} expired'.format(batch_id))
+        raise e
+
 def poll_email_activity(client, batch_id):
     sleep = 0
     start_time = time.time()
     while True:
-        data = client.get(
-            '/batches/{}'.format(batch_id),
-            endpoint='poll_email_activity')
+        data = get_batch_info(client, batch_id)
 
         LOGGER.info('reports_email_activity - Job polling: {} - {}'.format(
             data['id'],
@@ -273,6 +286,12 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
     batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
 
     if batch_id:
+        try:
+            get_batch_info(client, batch_id)
+        except BatchExpiredError:
+            batch_id = None
+
+    if batch_id:
         LOGGER.info('reports_email_activity - Picking up previous run: {}'.format(batch_id))
     else:
         LOGGER.info('reports_email_activity - Starting sync')
@@ -304,18 +323,16 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
 
     data = poll_email_activity(client, batch_id)
 
-    ## TODO: export expired?
-
-    ## TODO: check num failed failed operations ??
-
-    ## TODO: log completed_at - submitted_at diff
+    LOGGER.info('reports_email_activity batch job complete: took {:.2f} minutes'.format(
+        (strptime_to_utc(data['completed_at']) - strptime_to_utc(data['submitted_at']))
+        .total_seconds() / 60))
 
     failed_campaign_ids = stream_email_activity(client,
                                                 catalog,
                                                 state,
                                                 data['response_body_url'])
 
-    ## TODO: check num failed failed operations == num failed_campaign_ids ??
+    write_bookmark(state, ['reports_email_activity_last_run_id'], None)
 
 def get_selected_streams(catalog):
     selected_streams = set()
@@ -337,6 +354,8 @@ def should_sync_stream(streams_to_sync, dependants, stream_name):
         if should_persist or set(dependants).intersection(selected_streams):
             return True, should_persist
     return False, should_persist
+
+## TODO: is current_stream being updated?
 
 def sync(client, catalog, state, start_date):
     streams_to_sync = {
