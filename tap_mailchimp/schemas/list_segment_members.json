@@ -110,6 +110,8 @@
         "string"
       ]
     },
+    "interests": {
+    },
     "location": {
       "type": [
         "null",

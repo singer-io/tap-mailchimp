@@ -7,6 +7,12 @@
         "string"
       ]
     },
+    "web_id": {
+      "type": [
+        "null",
+        "integer"
+      ]
+    },
     "email_address": {
       "type": [
         "null",
@@ -181,8 +187,20 @@
       ],
       "items": {
         "type": [
-          "string"
-        ]
+          "object"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": [
+              "integer"
+            ]
+          },
+          "name": [
+            "null",
+            "string"
+          ]
+        }
       }
     },
     "list_id": {
