@@ -196,10 +196,12 @@
               "integer"
             ]
           },
-          "name": [
-            "null",
-            "string"
-          ]
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
         }
       }
     },
