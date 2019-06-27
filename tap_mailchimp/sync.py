@@ -212,11 +212,17 @@ def get_batch_info(client, batch_id):
             raise BatchExpiredError('Batch {} expired'.format(batch_id))
         raise e
 
-def poll_email_activity(client, batch_id):
+def write_activity_batch_bookmark(state, batch_id):
+    write_bookmark(state, ['reports_email_activity_last_run_id'], batch_id)
+
+def poll_email_activity(client, state, batch_id):
     sleep = 0
     start_time = time.time()
     while True:
         data = get_batch_info(client, batch_id)
+
+        ## needs to update frequently for target-stitch to capture state
+        write_activity_batch_bookmark(state, batch_id)
 
         progress = ''
         if data['total_operations'] > 0:
@@ -297,6 +303,8 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
         try:
             get_batch_info(client, batch_id)
         except BatchExpiredError:
+            LOGGER.info('reports_email_activity - Previous run from state expired: {}'.format(
+                batch_id))
             batch_id = None
 
     if batch_id:
@@ -327,9 +335,9 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
 
         LOGGER.info('reports_email_activity - Job running: {}'.format(batch_id))
 
-        write_bookmark(state, ['reports_email_activity_last_run_id'], batch_id)
+        write_activity_batch_bookmark(state, batch_id)
 
-    data = poll_email_activity(client, batch_id)
+    data = poll_email_activity(client, state, batch_id)
 
     LOGGER.info('reports_email_activity batch job complete: took {:.2f} minutes'.format(
         (strptime_to_utc(data['completed_at']) - strptime_to_utc(data['submitted_at']))
@@ -340,7 +348,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
                                                 state,
                                                 data['response_body_url'])
 
-    write_bookmark(state, ['reports_email_activity_last_run_id'], None)
+    write_activity_batch_bookmark(state, None)
 
 def get_selected_streams(catalog):
     selected_streams = set()
