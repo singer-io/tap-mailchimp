@@ -80,33 +80,39 @@
             "conditions": {
               "type": [
                 "null",
-                "object"
+                "array"
               ],
-              "additionalProperties": false,
-              "properties": {
-                "condition_type": {
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "op": {
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "field": {
-                  "type": [
-                    "null",
-                    "string"
-                  ]
-                },
-                "value": {
-                  "type": [
-                    "null",
-                    "string"
-                  ]
+              "items": {
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "condition_type": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "op": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "field": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "value": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
                 }
               }
             }
