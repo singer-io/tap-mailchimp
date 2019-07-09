@@ -11,7 +11,12 @@ PKS = {
     'list_segment_members': ['id'],
     'list_segments': ['id'],
     'lists': ['id'],
-    'reports_email_activity': [],
+    'reports_email_activity': [
+        'campaign_id',
+        'action',
+        'email_id',
+        'timestamp'
+    ],
     'unsubscribes': ['campaign_id', 'email_id']
 }
 
