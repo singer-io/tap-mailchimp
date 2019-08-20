@@ -445,5 +445,6 @@ def sync(client, catalog, state, start_date):
     should_stream, should_persist = should_sync_stream(streams_to_sync,
                                                        [],
                                                        'reports_email_activity')
-    if should_stream:
-        sync_email_activity(client, catalog, state, start_date, id_bag['campaigns'])
+    campaign_ids = id_bag['campaigns']
+    if should_stream and campaign_ids:
+        sync_email_activity(client, catalog, state, start_date, campaign_ids)
