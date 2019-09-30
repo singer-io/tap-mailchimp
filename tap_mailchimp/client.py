@@ -6,6 +6,9 @@ import requests
 from requests.exceptions import ConnectionError
 from singer import metrics
 
+class ClientRateLimitError(Exception):
+    pass
+
 class Server5xxError(Exception):
     pass
 
@@ -34,7 +37,7 @@ class MailchimpClient(object):
         self.__base_url = data['api_endpoint']
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ConnectionError),
+                          (Server5xxError, ClientRateLimitError, ConnectionError),
                           max_tries=6,
                           factor=3)
     def request(self, method, path=None, url=None, s3=False, **kwargs):
@@ -73,6 +76,9 @@ class MailchimpClient(object):
 
         if response.status_code >= 500:
             raise Server5xxError()
+
+        if response.status_code == 429:
+            raise ClientRateLimitError()
 
         response.raise_for_status()
 
