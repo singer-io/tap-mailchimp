@@ -3,7 +3,7 @@
 from setuptools import setup
 
 setup(name='tap-mailchimp',
-      version='0.0.3',
+      version='0.0.4',
       description='Singer.io tap for extracting data from the Mailchimp API',
       author='Stitch',
       url='https://singer.io',
