@@ -19,6 +19,7 @@ class MailchimpClient(object):
         self.__api_key = config.get('api_key')
         self.__session = requests.Session()
         self.__base_url = None
+        self.page_size = int(config.get('page_size', '1000'))
 
         if not self.__access_token and self.__api_key:
             self.__base_url = 'https://{}.api.mailchimp.com'.format(
