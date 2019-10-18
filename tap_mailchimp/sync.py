@@ -98,12 +98,12 @@ def sync_endpoint(client,
 
     write_schema(catalog, stream_name)
 
-    count = 1000
+    page_size = client.page_size
     offset = 0
     has_more = True
     while has_more:
         params = {
-            'count': count,
+            'count': page_size,
             'offset': offset,
             **static_params
         }
@@ -114,7 +114,7 @@ def sync_endpoint(client,
         LOGGER.info('{} - Syncing - {}count: {}, offset: {}'.format(
             stream_name,
             'since: {}, '.format(last_datetime) if bookmark_query_field else '',
-            count,
+            page_size,
             offset))
 
         data = client.get(
@@ -124,7 +124,7 @@ def sync_endpoint(client,
 
         raw_records = data.get(data_key)
 
-        if len(raw_records) < count:
+        if len(raw_records) < page_size:
             has_more = False
 
         max_bookmark_field = process_records(catalog,
@@ -139,7 +139,7 @@ def sync_endpoint(client,
                            bookmark_path,
                            max_bookmark_field)
 
-        offset += count
+        offset += page_size
 
     return ids
 
