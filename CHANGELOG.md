@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.0
+  * Add `page_size` to config options to control number of records per request [#12](https://github.com/singer-io/tap-mailchimp/pull/12)
+
 ## 0.0.4
   * Raise a ClientRateLimitError when Mailchimp returns a 429 so it can run backoff
 
