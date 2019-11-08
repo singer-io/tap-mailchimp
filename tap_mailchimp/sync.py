@@ -39,17 +39,16 @@ def process_records(catalog,
     stream = catalog.get_stream(stream_name)
     schema = stream.schema.to_dict()
     stream_metadata = metadata.to_map(stream.metadata)
-    with metrics.record_counter(stream_name) as counter:
+    with metrics.record_counter(stream_name) as counter, Transformer() as transformer:
         for record in records:
             if bookmark_field:
                 if max_bookmark_field is None or \
                     record[bookmark_field] > max_bookmark_field:
                     max_bookmark_field = record[bookmark_field]
             if persist:
-                with Transformer() as transformer:
-                    record = transformer.transform(record,
-                                                   schema,
-                                                   stream_metadata)
+                record = transformer.transform(record,
+                                               schema,
+                                               stream_metadata)
                 singer.write_record(stream_name, record)
                 counter.increment()
         return max_bookmark_field
