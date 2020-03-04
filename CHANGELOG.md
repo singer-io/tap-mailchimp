@@ -1,5 +1,8 @@
 # Changelog
 
+## 0.1.1
+  * Improve logging to make the `reports_email_activity` sync more traceable [#18](https://github.com/singer-io/tap-mailchimp/pull/18)
+
 ## 0.1.0
   * Add `page_size` to config options to control number of records per request [#12](https://github.com/singer-io/tap-mailchimp/pull/12)
 
