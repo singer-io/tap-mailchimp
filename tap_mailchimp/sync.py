@@ -277,8 +277,9 @@ def stream_email_activity(client, catalog, state, archive_url):
                 if file.isfile():
                     rawoperations = tar.extractfile(file)
                     operations = json.loads(rawoperations.read().decode('utf-8'))
-                    for operation in operations:
+                    for i, operation in enumerate(operations):
                         campaign_id = operation['operation_id']
+                        LOGGER.info("reports_email_activity - [batch operation %s] Processing records for campaign %s", i, campaign_id)
                         if operation['status_code'] != 200:
                             failed_campaign_ids.append(campaign_id)
                         else:
@@ -339,7 +340,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
 
     data = poll_email_activity(client, state, batch_id)
 
-    LOGGER.info('reports_email_activity batch job complete: took {:.2f} minutes'.format(
+    LOGGER.info('reports_email_activity - Batch job complete: took {:.2f} minutes'.format(
         (strptime_to_utc(data['completed_at']) - strptime_to_utc(data['submitted_at']))
         .total_seconds() / 60))
 
@@ -347,6 +348,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
                                                 catalog,
                                                 state,
                                                 data['response_body_url'])
+    LOGGER.warning("reports_email_activity - Job failed for campaign_ids: %s", failed_campaign_ids)
 
     write_activity_batch_bookmark(state, None)
 
