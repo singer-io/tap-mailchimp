@@ -348,7 +348,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
                                                 catalog,
                                                 state,
                                                 data['response_body_url'])
-    LOGGER.warning("reports_email_activity - Job failed for campaign_ids: %s", failed_campaign_ids)
+    LOGGER.warning("reports_email_activity - operations failed for campaign_ids: %s", failed_campaign_ids)
 
     write_activity_batch_bookmark(state, None)
 
