@@ -7,7 +7,7 @@ FIELD_METADATA = {}
 PKS = {
     'automations': ['id'],
     'campaigns': ['id'],
-    'list_members': ['id'],
+    'list_members': ['id', 'list_id'],
     'list_segment_members': ['id'],
     'list_segments': ['id'],
     'lists': ['id'],
