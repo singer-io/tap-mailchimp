@@ -3,8 +3,11 @@ from datetime import datetime, timedelta
 
 import backoff
 import requests
+import singer
 from requests.exceptions import ConnectionError
 from singer import metrics
+
+LOGGER = singer.get_logger()
 
 class ClientRateLimitError(Exception):
     pass
@@ -72,6 +75,7 @@ class MailchimpClient(object):
             kwargs['stream'] = True
 
         with metrics.http_request_timer(endpoint) as timer:
+            LOGGER.info("Executing %s request to %s with params: %s", method, url, kwargs.get('params'))
             response = self.__session.request(method, url, **kwargs)
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
