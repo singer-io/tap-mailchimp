@@ -1,8 +1,11 @@
+import re
 import json
 import time
 import random
 import tarfile
+from datetime import datetime, timedelta
 
+import requests
 import singer
 from singer import metrics, metadata, Transformer
 from singer.utils import strptime_to_utc
@@ -107,11 +110,11 @@ def sync_endpoint(client,
         if bookmark_query_field:
             params[bookmark_query_field] = last_datetime
 
-        LOGGER.info('%s - Syncing - %scount: %s, offset: %s',
-                    stream_name,
-                    'since: {}, '.format(last_datetime) if bookmark_query_field else '',
-                    page_size,
-                    offset)
+        LOGGER.info('{} - Syncing - {}count: {}, offset: {}'.format(
+            stream_name,
+            'since: {}, '.format(last_datetime) if bookmark_query_field else '',
+            page_size,
+            offset))
 
         data = client.get(
             path,
@@ -182,7 +185,7 @@ def sync_stream(client,
 
         if endpoint_config.get('store_ids'):
             id_bag[stream_name] = stream_ids
-
+        
         children = endpoint_config.get('children')
         if children:
             for child_stream_name, child_endpoint_config in children.items():
@@ -227,10 +230,10 @@ def poll_email_activity(client, state, batch_id):
                 data['total_operations'],
                 (data['finished_operations'] / data['total_operations']) * 100.0)
 
-        LOGGER.info('reports_email_activity - Job polling: %s - %s%s',
-                    data['id'],
-                    data['status'],
-                    progress)
+        LOGGER.info('reports_email_activity - Job polling: {} - {}{}'.format(
+            data['id'],
+            data['status'],
+            progress))
 
         if data['status'] == 'finished':
             return data
@@ -241,9 +244,9 @@ def poll_email_activity(client, state, batch_id):
             raise Exception(message)
 
         sleep = next_sleep_interval(sleep)
-        LOGGER.info('campaigns - status: %s, sleeping for %s seconds',
+        LOGGER.info('campaigns - status: {}, sleeping for {} seconds'.format(
                     data['status'],
-                    sleep)
+                    sleep))
         time.sleep(sleep)
 
 def stream_email_activity(client, catalog, state, archive_url):
@@ -281,11 +284,12 @@ def stream_email_activity(client, catalog, state, archive_url):
                         else:
                             response = json.loads(operation['response'])
                             email_activities = response['emails']
-                            max_bookmark_field = process_records(catalog,
-                                                                 stream_name,
-                                                                 transform_activities(email_activities),
-                                                                 bookmark_field='timestamp',
-                                                                 max_bookmark_field=None)
+                            max_bookmark_field = process_records(
+                                            catalog,
+                                            stream_name,
+                                            transform_activities(email_activities),
+                                            bookmark_field='timestamp',
+                                            max_bookmark_field=None)
                             write_bookmark(state,
                                            [stream_name, campaign_id],
                                            max_bookmark_field)
@@ -299,13 +303,12 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
         try:
             get_batch_info(client, batch_id)
         except BatchExpiredError:
-            LOGGER.info('reports_email_activity - Previous run from state expired: %s',
-                        batch_id)
+            LOGGER.info('reports_email_activity - Previous run from state expired: {}'.format(
+                batch_id))
             batch_id = None
 
     if batch_id:
-        LOGGER.info('reports_email_activity - Picking up previous run: %s',
-                    batch_id)
+        LOGGER.info('reports_email_activity - Picking up previous run: {}'.format(batch_id))
     else:
         LOGGER.info('reports_email_activity - Starting sync')
 
@@ -330,8 +333,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids):
 
         batch_id = data['id']
 
-        LOGGER.info('reports_email_activity - Job running: %s',
-                    batch_id)
+        LOGGER.info('reports_email_activity - Job running: {}'.format(batch_id))
 
         write_activity_batch_bookmark(state, batch_id)
 
@@ -391,7 +393,7 @@ def sync(client, catalog, state, start_date):
                 'sort_dir': 'ASC'
             },
             'children': {
-                'list_members': {
+               'list_members': {
                     'path': '/lists/{}/members',
                     'data_path': 'members',
                     'bookmark_query_field': 'since_last_changed',
@@ -421,7 +423,7 @@ def sync(client, catalog, state, start_date):
             },
             'store_ids': True,
             'children': {
-                'unsubscribes': {
+               'unsubscribes': {
                     'path': '/reports/{}/unsubscribed'
                 }
             }
@@ -441,9 +443,9 @@ def sync(client, catalog, state, start_date):
                     stream_name,
                     endpoint_config)
 
-    should_stream, _ = should_sync_stream(streams_to_sync,
-                                          [],
-                                          'reports_email_activity')
+    should_stream, should_persist = should_sync_stream(streams_to_sync,
+                                                       [],
+                                                       'reports_email_activity')
     campaign_ids = id_bag.get('campaigns')
     if should_stream and campaign_ids:
         sync_email_activity(client, catalog, state, start_date, campaign_ids)

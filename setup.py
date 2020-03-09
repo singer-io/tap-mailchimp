@@ -18,13 +18,6 @@ setup(name='tap-mailchimp',
           [console_scripts]
           tap-mailchimp=tap_mailchimp:main
       ''',
-      extras_require={
-        'dev': [
-            'pylint',
-            'ipdb',
-            'nose'
-        ]
-      },
       packages=['tap_mailchimp'],
       package_data = {
           'tap_mailchimp': ['schemas/*.json'],
