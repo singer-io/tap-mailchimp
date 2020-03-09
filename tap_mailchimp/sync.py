@@ -18,7 +18,7 @@ MAX_RETRY_INTERVAL = 300 # 5 minutes
 MAX_RETRY_ELAPSED_TIME = 43200 # 12 hours
 
 # Break up reports_email_activity batches to iterate over chunks
-EMAIL_ACTIVITY_BATCH_SIZE = 10
+EMAIL_ACTIVITY_BATCH_SIZE = 100
 
 class BatchExpiredError(Exception):
     pass
@@ -188,7 +188,7 @@ def sync_stream(client,
 
         if endpoint_config.get('store_ids'):
             id_bag[stream_name] = stream_ids
-        
+
         children = endpoint_config.get('children')
         if children:
             for child_stream_name, child_endpoint_config in children.items():
@@ -299,17 +299,7 @@ def stream_email_activity(client, catalog, state, archive_url):
                 file = tar.next()
     return failed_campaign_ids
 
-def sync_email_activity(client, catalog, state, start_date, campaign_ids):
-    batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
-
-    if batch_id:
-        try:
-            get_batch_info(client, batch_id)
-        except BatchExpiredError:
-            LOGGER.info('reports_email_activity - Previous run from state expired: {}'.format(
-                batch_id))
-            batch_id = None
-
+def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_id=None):
     if batch_id:
         LOGGER.info('reports_email_activity - Picking up previous run: {}'.format(batch_id))
     else:
@@ -375,9 +365,9 @@ def should_sync_stream(streams_to_sync, dependants, stream_name):
             return True, should_persist
     return False, should_persist
 
-def chunk_campaigns(sorted_campaigns):
-    chunk_start = 0
-    chunk_end = EMAIL_ACTIVITY_BATCH_SIZE
+def chunk_campaigns(sorted_campaigns, chunk_bookmark):
+    chunk_start = chunk_bookmark * EMAIL_ACTIVITY_BATCH_SIZE
+    chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
 
     done = False
     while not done:
@@ -387,6 +377,21 @@ def chunk_campaigns(sorted_campaigns):
             yield current_chunk
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
+
+def check_and_resume_email_activity_batch(client, catalog, state, start_date):
+    batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
+
+    if batch_id:
+        try:
+            get_batch_info(client, batch_id)
+        except BatchExpiredError:
+            LOGGER.info('reports_email_activity - Previous run from state expired: {}'.format(
+                batch_id))
+            batch_id = None
+
+        # Resume from bookmarked job_id, then if completed, issue a new batch for processing.
+        campaigns = [] # Don't need a list of campaigns if resuming
+        sync_email_activity(client, catalog, state, start_date, campaigns, batch_id)
 
 ## TODO: is current_stream being updated?
 
@@ -464,7 +469,14 @@ def sync(client, catalog, state, start_date):
                                                        'reports_email_activity')
     campaign_ids = id_bag.get('campaigns')
     if should_stream and campaign_ids:
-        # TODO: Bookmark offset?
+        # Resume previous batch, if necessary
+        check_and_resume_email_activity_batch(client, catalog, state, start_date)
+        # Chunk batch_ids, bookmarking the chunk number
         sorted_campaigns = sorted(campaign_ids)
-        for campaign_chunk in chunk_campaigns(sorted_campaigns):
+        chunk_bookmark = get_bookmark(state, ['reports_email_activity_last_chunk'], 0)
+        for i, campaign_chunk in enumerate(chunk_campaigns(sorted_campaigns, chunk_bookmark)):
+            state = write_bookmark(state, ['reports_email_activity_last_chunk'], chunk_bookmark + i)
             sync_email_activity(client, catalog, state, start_date, campaign_chunk)
+
+        # Start from the beginning next time
+        state = write_bookmark(state, ['reports_email_activity_last_chunk'], 0)
