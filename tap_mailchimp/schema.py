@@ -38,12 +38,12 @@ def get_schemas():
         stream_name = file_name[:-5]
         with open(os.path.join(schemas_path, file_name)) as data_file:
             schema = json.load(data_file)
-            
+
         SCHEMAS[stream_name] = schema
         pk = PKS[stream_name]
 
         metadata = []
-        for prop, json_schema in schema['properties'].items():
+        for prop in schema['properties'].keys():
             if prop in pk:
                 inclusion = 'automatic'
             else:

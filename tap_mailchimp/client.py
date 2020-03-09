@@ -1,10 +1,7 @@
-import json
-from datetime import datetime, timedelta
-
 import backoff
 import requests
 import singer
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError as RequestConnectionError
 from singer import metrics
 
 LOGGER = singer.get_logger()
@@ -15,7 +12,7 @@ class ClientRateLimitError(Exception):
 class Server5xxError(Exception):
     pass
 
-class MailchimpClient(object):
+class MailchimpClient():
     def __init__(self, config):
         self.__user_agent = config.get('user_agent')
         self.__access_token = config.get('access_token')
@@ -31,7 +28,7 @@ class MailchimpClient(object):
     def __enter__(self):
         return self
 
-    def __exit__(self, type, value, traceback):
+    def __exit__(self, exception_type, exception_value, traceback):
         self.__session.close()
 
     def get_base_url(self):
@@ -41,7 +38,7 @@ class MailchimpClient(object):
         self.__base_url = data['api_endpoint']
 
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ClientRateLimitError, ConnectionError),
+                          (Server5xxError, ClientRateLimitError, RequestConnectionError),
                           max_tries=6,
                           factor=3)
     def request(self, method, path=None, url=None, s3=False, **kwargs):
