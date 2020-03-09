@@ -17,6 +17,9 @@ MIN_RETRY_INTERVAL = 2 # 2 seconds
 MAX_RETRY_INTERVAL = 300 # 5 minutes
 MAX_RETRY_ELAPSED_TIME = 43200 # 12 hours
 
+# Break up reports_email_activity batches to iterate over chunks
+EMAIL_ACTIVITY_BATCH_SIZE = 10
+
 class BatchExpiredError(Exception):
     pass
 
@@ -372,6 +375,19 @@ def should_sync_stream(streams_to_sync, dependants, stream_name):
             return True, should_persist
     return False, should_persist
 
+def chunk_campaigns(sorted_campaigns):
+    chunk_start = 0
+    chunk_end = EMAIL_ACTIVITY_BATCH_SIZE
+
+    done = False
+    while not done:
+        current_chunk = sorted_campaigns[chunk_start:chunk_end]
+        done = len(current_chunk) == 0
+        if not done:
+            yield current_chunk
+        chunk_start = chunk_end
+        chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
+
 ## TODO: is current_stream being updated?
 
 def sync(client, catalog, state, start_date):
@@ -448,4 +464,7 @@ def sync(client, catalog, state, start_date):
                                                        'reports_email_activity')
     campaign_ids = id_bag.get('campaigns')
     if should_stream and campaign_ids:
-        sync_email_activity(client, catalog, state, start_date, campaign_ids)
+        # TODO: Bookmark offset?
+        sorted_campaigns = sorted(campaign_ids)
+        for campaign_chunk in chunk_campaigns(sorted_campaigns):
+            sync_email_activity(client, catalog, state, start_date, campaign_chunk)
