@@ -369,11 +369,20 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
     chunk_start = chunk_bookmark * EMAIL_ACTIVITY_BATCH_SIZE
     chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
 
+    if chunk_bookmark > 0:
+        LOGGER.info("reports_email_activity - Resuming requests starting at campaign_id %s/%s in chunks of %s",
+                    chunk_start,
+                    len(sorted_campaigns),
+                    EMAIL_ACTIVITY_BATCH_SIZE)
+
     done = False
     while not done:
         current_chunk = sorted_campaigns[chunk_start:chunk_end]
         done = len(current_chunk) == 0
         if not done:
+            LOGGER.info("reports_email_activity - Will request for campaign_ids from %s to %s",
+                        chunk_start,
+                        min(chunk_end, len(sorted_campaigns))
             yield current_chunk
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
