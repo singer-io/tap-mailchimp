@@ -340,7 +340,8 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
                                                 catalog,
                                                 state,
                                                 data['response_body_url'])
-    LOGGER.warning("reports_email_activity - operations failed for campaign_ids: %s", failed_campaign_ids)
+    if failed_campaign_ids:
+        LOGGER.warning("reports_email_activity - operations failed for campaign_ids: %s", failed_campaign_ids)
 
     write_activity_batch_bookmark(state, None)
 
@@ -370,9 +371,9 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
     chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
 
     if chunk_bookmark > 0:
-        LOGGER.info("reports_email_activity - Resuming requests starting at campaign_id %s/%s in chunks of %s",
+        LOGGER.info("reports_email_activity - Resuming requests starting at campaign_id %s (index %s) in chunks of %s",
+                    sorted_campaigns[chunk_start],
                     chunk_start,
-                    len(sorted_campaigns),
                     EMAIL_ACTIVITY_BATCH_SIZE)
 
     done = False
@@ -380,12 +381,21 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
         current_chunk = sorted_campaigns[chunk_start:chunk_end]
         done = len(current_chunk) == 0
         if not done:
-            LOGGER.info("reports_email_activity - Will request for campaign_ids from %s to %s",
+            end_index = min(chunk_end, len(sorted_campaigns))
+            LOGGER.info("reports_email_activity - Will request for campaign_ids from %s to %s (index %s to %s)",
+                        sorted_campaigns[chunk_start],
+                        sorted_campaigns[end_index - 1],
                         chunk_start,
-                        min(chunk_end, len(sorted_campaigns))
+                        end_index - 1)
             yield current_chunk
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
+
+def write_email_activity_chunk_bookmark(current_bookmark, current_index, sorted_campaigns):
+    # Bookmark next chunk because the current chunk will be saved in batch_id
+    next_chunk = chunk_bookmark + current_index + 1
+    if next_chunk * EMAIL_ACTIVITY_BATCH_SIZE < len(sorted_campaigns):
+        write_bookmark(state, ['reports_email_activity_last_chunk'], next_chunk)
 
 def check_and_resume_email_activity_batch(client, catalog, state, start_date):
     batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
@@ -482,9 +492,9 @@ def sync(client, catalog, state, start_date):
         check_and_resume_email_activity_batch(client, catalog, state, start_date)
         # Chunk batch_ids, bookmarking the chunk number
         sorted_campaigns = sorted(campaign_ids)
-        chunk_bookmark = get_bookmark(state, ['reports_email_activity_last_chunk'], 0)
+        chunk_bookmark = int(get_bookmark(state, ['reports_email_activity_last_chunk'], 0))
         for i, campaign_chunk in enumerate(chunk_campaigns(sorted_campaigns, chunk_bookmark)):
-            state = write_bookmark(state, ['reports_email_activity_last_chunk'], chunk_bookmark + i)
+            write_email_sctivity_chunk_bookmark(chunk_bookmark, i, sorted_campaigns)
             sync_email_activity(client, catalog, state, start_date, campaign_chunk)
 
         # Start from the beginning next time
