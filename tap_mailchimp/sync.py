@@ -391,11 +391,12 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
-def write_email_activity_chunk_bookmark(current_bookmark, current_index, sorted_campaigns):
+def write_email_activity_chunk_bookmark(state, current_bookmark, current_index, sorted_campaigns):
     # Bookmark next chunk because the current chunk will be saved in batch_id
-    next_chunk = chunk_bookmark + current_index + 1
+    # Index is relative to current bookmark
+    next_chunk = current_bookmark + current_index + 1
     if next_chunk * EMAIL_ACTIVITY_BATCH_SIZE < len(sorted_campaigns):
-        write_bookmark(state, ['reports_email_activity_last_chunk'], next_chunk)
+        write_bookmark(state, ['reports_email_activity_next_chunk'], next_chunk)
 
 def check_and_resume_email_activity_batch(client, catalog, state, start_date):
     batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
@@ -492,10 +493,10 @@ def sync(client, catalog, state, start_date):
         check_and_resume_email_activity_batch(client, catalog, state, start_date)
         # Chunk batch_ids, bookmarking the chunk number
         sorted_campaigns = sorted(campaign_ids)
-        chunk_bookmark = int(get_bookmark(state, ['reports_email_activity_last_chunk'], 0))
+        chunk_bookmark = int(get_bookmark(state, ['reports_email_activity_next_chunk'], 0))
         for i, campaign_chunk in enumerate(chunk_campaigns(sorted_campaigns, chunk_bookmark)):
-            write_email_sctivity_chunk_bookmark(chunk_bookmark, i, sorted_campaigns)
+            write_email_activity_chunk_bookmark(state, chunk_bookmark, i, sorted_campaigns)
             sync_email_activity(client, catalog, state, start_date, campaign_chunk)
 
         # Start from the beginning next time
-        state = write_bookmark(state, ['reports_email_activity_last_chunk'], 0)
+        state = write_bookmark(state, ['reports_email_activity_next_chunk'], 0)
