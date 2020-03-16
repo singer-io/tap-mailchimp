@@ -403,11 +403,15 @@ def check_and_resume_email_activity_batch(client, catalog, state, start_date):
 
     if batch_id:
         try:
-            get_batch_info(client, batch_id)
+            data = get_batch_info(client, batch_id)
+            if not data['response_body_url']:
+                LOGGER.info('reports_email_activity - Previous run from state ({}) is empty, retrying.'.format(
+                    batch_id))
+                return
         except BatchExpiredError:
             LOGGER.info('reports_email_activity - Previous run from state expired: {}'.format(
                 batch_id))
-            batch_id = None
+            return
 
         # Resume from bookmarked job_id, then if completed, issue a new batch for processing.
         campaigns = [] # Don't need a list of campaigns if resuming
