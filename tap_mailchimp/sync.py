@@ -397,6 +397,8 @@ def write_email_activity_chunk_bookmark(state, current_bookmark, current_index, 
     next_chunk = current_bookmark + current_index + 1
     if next_chunk * EMAIL_ACTIVITY_BATCH_SIZE < len(sorted_campaigns):
         write_bookmark(state, ['reports_email_activity_next_chunk'], next_chunk)
+    else:
+        write_bookmark(state, ['reports_email_activity_next_chunk'], 0)
 
 def check_and_resume_email_activity_batch(client, catalog, state, start_date):
     batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
