@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.1
+  * Request chunks of campaigns for email_activty reports [#21](https://github.com/singer-io/tap-mailchimp/pull/21)
+
 ## 1.0.0
   * Add `list_id` as a primary key for the `list_members` stream
   * Clean up logging
