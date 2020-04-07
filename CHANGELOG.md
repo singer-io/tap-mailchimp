@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.2
+  * Check for current bookmark in `reports_email_activity` stream [#25](https://github.com/singer-io/tap-mailchimp/pull/25)
+
 ## 1.0.1
   * Request chunks of campaigns for email_activty reports [#21](https://github.com/singer-io/tap-mailchimp/pull/21)
 
