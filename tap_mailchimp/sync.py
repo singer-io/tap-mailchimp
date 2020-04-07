@@ -281,6 +281,7 @@ def stream_email_activity(client, catalog, state, archive_url):
                     operations = json.loads(rawoperations.read().decode('utf-8'))
                     for i, operation in enumerate(operations):
                         campaign_id = operation['operation_id']
+                        last_bookmark = state['bookmarks'][stream_name][campaign_id]
                         LOGGER.info("reports_email_activity - [batch operation %s] Processing records for campaign %s", i, campaign_id)
                         if operation['status_code'] != 200:
                             failed_campaign_ids.append(campaign_id)
@@ -292,7 +293,7 @@ def stream_email_activity(client, catalog, state, archive_url):
                                             stream_name,
                                             transform_activities(email_activities),
                                             bookmark_field='timestamp',
-                                            max_bookmark_field=None)
+                                            max_bookmark_field=last_bookmark)
                             write_bookmark(state,
                                            [stream_name, campaign_id],
                                            max_bookmark_field)
