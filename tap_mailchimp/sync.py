@@ -407,7 +407,7 @@ def check_and_resume_email_activity_batch(client, catalog, state, start_date):
     if batch_id:
         try:
             data = get_batch_info(client, batch_id)
-            if not data['response_body_url']:
+            if data['status'] == 'finished' and not data['response_body_url']:
                 LOGGER.info('reports_email_activity - Previous run from state ({}) is empty, retrying.'.format(
                     batch_id))
                 return
