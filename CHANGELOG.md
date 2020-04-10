@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.0.3
+  * Fix resume batch logic [#27](https://github.com/singer-io/tap-mailchimp/pull/27)
+
 ## 1.0.2
   * Check for current bookmark in `reports_email_activity` stream [#25](https://github.com/singer-io/tap-mailchimp/pull/25)
 
