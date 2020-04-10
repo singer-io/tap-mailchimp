@@ -402,8 +402,6 @@ def write_email_activity_chunk_bookmark(state, current_bookmark, current_index, 
         write_bookmark(state, ['reports_email_activity_next_chunk'], 0)
 
 def check_and_resume_email_activity_batch(client, catalog, state, start_date):
-    import ipdb; ipdb.set_trace()
-    1+1
     batch_id = get_bookmark(state, ['reports_email_activity_last_run_id'], None)
 
     if batch_id:
