@@ -119,10 +119,15 @@ def sync_endpoint(client,
             page_size,
             offset))
 
+        selected_fields = get_selected_fields(catalog, stream_name)
+        field_names = [str(data_key)+'.'+str(x) for x in selected_fields]+['_links', 'total_items', 'constraints',str(data_key)+'.'+str('_links')]
+        params['fields'] = ','.join(field_names)
+
         data = client.get(
             path,
             params=params,
             endpoint=stream_name)
+
 
         raw_records = data.get(data_key)
 
@@ -306,6 +311,9 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
     else:
         LOGGER.info('reports_email_activity - Starting sync')
 
+        selected_fields = get_selected_fields(catalog, 'reports_email_activity')
+        field_names = ['emails.'+str(x) for x in selected_fields]+['_links', 'total_items', 'constraints','emails.'+str('_links')]
+
         operations = []
         for campaign_id in campaign_ids:
             since = get_bookmark(state, ['reports_email_activity', campaign_id], start_date)
@@ -314,7 +322,8 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
                 'path': '/reports/{}/email-activity'.format(campaign_id),
                 'operation_id': campaign_id,
                 'params': {
-                    'since': since
+                    'since': since,
+                    'fields': ','.join(field_names)
                 }
             })
 
@@ -354,6 +363,12 @@ def get_selected_streams(catalog):
         if root_metadata and root_metadata.get('selected') is True:
             selected_streams.add(stream.tap_stream_id)
     return list(selected_streams)
+
+def get_selected_fields(catalog, stream_name):
+    mdata = [x for x in catalog.to_dict()['streams'] if x['stream'] == stream_name][0]['metadata']
+    field_names = [x['breadcrumb'][1] for x in mdata if len(x['breadcrumb'])>1 and (x.get('metadata',{}).get('inclusion') == 'automatic' or x.get('metadata',{}).get('selected') == True)]
+    return field_names
+
 
 def should_sync_stream(streams_to_sync, dependants, stream_name):
     selected_streams = streams_to_sync['selected_streams']
