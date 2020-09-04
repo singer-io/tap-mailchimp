@@ -65,7 +65,7 @@ def get_bookmark(state, path, default):
 def nested_set(dic, path, value):
     for key in path[:-1]:
         dic = dic.setdefault(key, {})
-        dic[path[-1]] = value
+    dic[path[-1]] = value
 
 def write_bookmark(state, path, value):
     nested_set(state, ['bookmarks'] + path, value)
@@ -92,7 +92,7 @@ def sync_endpoint(client,
         _id = record.get('id')
         if _id:
             ids.append(_id)
-            del record['_links']
+        del record['_links']
         return record
 
     write_schema(catalog, stream_name)
@@ -262,14 +262,14 @@ def stream_email_activity(client, catalog, state, archive_url):
             if 'activity' in record:
                 if '_links' in record:
                     del record['_links']
-                    record_template = dict(record)
-                    del record_template['activity']
+                record_template = dict(record)
+                del record_template['activity']
 
                 for activity in record['activity']:
                     new_activity = dict(record_template)
                     for key, value in activity.items():
                         new_activity[key] = value
-                        yield new_activity
+                    yield new_activity
 
     write_schema(catalog, stream_name)
 
@@ -299,7 +299,7 @@ def stream_email_activity(client, catalog, state, archive_url):
                             write_bookmark(state,
                                            [stream_name, campaign_id],
                                            max_bookmark_field)
-                            file = tar.next()
+                file = tar.next()
     return failed_campaign_ids
 
 def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_id=None):
@@ -400,8 +400,8 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
                         chunk_start,
                         end_index - 1)
             yield current_chunk
-            chunk_start = chunk_end
-            chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
+        chunk_start = chunk_end
+        chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
 def write_email_activity_chunk_bookmark(state, current_bookmark, current_index, sorted_campaigns):
     # Bookmark next chunk because the current chunk will be saved in batch_id
