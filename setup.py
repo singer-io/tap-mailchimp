@@ -14,6 +14,11 @@ setup(name='tap-mailchimp',
           'requests==2.20.1',
           'singer-python==5.2.0'
       ],
+      extras_require= {
+          'dev': [
+              'pylint==2.5.3',
+          ]
+      },
       entry_points='''
           [console_scripts]
           tap-mailchimp=tap_mailchimp:main
