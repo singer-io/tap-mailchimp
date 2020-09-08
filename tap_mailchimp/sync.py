@@ -308,7 +308,9 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
     else:
         LOGGER.info('reports_email_activity - Starting sync')
 
-        formatted_field_names = format_selected_fields(catalog, 'reports_email_activity', 'emails')
+        extra_fields = ['emails.activity']
+
+        formatted_field_names = format_selected_fields(catalog, 'reports_email_activity', 'emails', extra_fields)
 
         operations = []
         for campaign_id in campaign_ids:
@@ -359,7 +361,7 @@ def get_selected_streams(catalog):
             selected_streams.add(stream.tap_stream_id)
     return list(selected_streams)
 
-def format_selected_fields(catalog, stream_name, data_key):
+def format_selected_fields(catalog, stream_name, data_key, extra_fields=None):
     """Given a catalog with selected metadata return a comma separated string
     of the `data_key.field_name` for every selected field in the catalog plus
     the `extra_fields` defined below
@@ -378,8 +380,10 @@ def format_selected_fields(catalog, stream_name, data_key):
         if should_sync_field(field_metadata.get('inclusion'), field_metadata.get('selected')):
             formatted_field_names.append(data_key+'.'+field)
 
-    extra_fields = ['_links', 'total_items', 'constraints', data_key+'.'+'_links']
-    formatted_field_names += extra_fields
+    default_fields = ['_links', 'total_items', 'constraints', data_key+'.'+'_links']
+    formatted_field_names += default_fields
+    if extra_fields:
+        formatted_field_names += extra_fields
     return ",".join(formatted_field_names)
 
 
