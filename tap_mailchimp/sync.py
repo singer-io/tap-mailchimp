@@ -5,7 +5,7 @@ import tarfile
 
 import singer
 from singer import metrics, metadata, Transformer
-from singer.utils import strptime_to_utc
+from singer.utils import strptime_to_utc, should_sync_field
 from requests.exceptions import HTTPError
 
 LOGGER = singer.get_logger()
@@ -116,9 +116,9 @@ def sync_endpoint(client,
                     page_size,
                     offset)
 
-        selected_fields = get_selected_fields(catalog, stream_name)
-        field_names = [str(data_key)+'.'+str(x) for x in selected_fields]+['_links', 'total_items', 'constraints',str(data_key)+'.'+str('_links')]
-        params['fields'] = ','.join(field_names)
+        formatted_selected_fields = format_selected_fields(catalog, stream_name, data_key)
+
+        params['fields'] = formatted_selected_fields
 
         data = client.get(
             path,
@@ -308,8 +308,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
     else:
         LOGGER.info('reports_email_activity - Starting sync')
 
-        selected_fields = get_selected_fields(catalog, 'reports_email_activity')
-        field_names = ['emails.'+str(x) for x in selected_fields]+['_links', 'total_items', 'constraints','emails.'+str('_links')]
+        formatted_field_names = format_selected_fields(catalog, 'reports_email_activity', 'emails')
 
         operations = []
         for campaign_id in campaign_ids:
@@ -320,7 +319,7 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
                 'operation_id': campaign_id,
                 'params': {
                     'since': since,
-                    'fields': ','.join(field_names)
+                    'fields': formatted_field_names
                 }
             })
 
@@ -360,10 +359,29 @@ def get_selected_streams(catalog):
             selected_streams.add(stream.tap_stream_id)
     return list(selected_streams)
 
-def get_selected_fields(catalog, stream_name):
-    mdata = [x for x in catalog.to_dict()['streams'] if x['stream'] == stream_name][0]['metadata']
-    field_names = [x['breadcrumb'][1] for x in mdata if len(x['breadcrumb'])>1 and (x.get('metadata',{}).get('inclusion') == 'automatic' or x.get('metadata',{}).get('selected'))]
-    return field_names
+def format_selected_fields(catalog, stream_name, data_key):
+    """Given a catalog with selected metadata return a comma separated string
+    of the `data_key.field_name` for every selected field in the catalog plus
+    the `extra_fields` defined below
+
+    The result of this function is expected to be passed to the API as the
+    value of the `fields` parameter
+
+    We add '<data_key>' to the beginning of all the selected fields because
+    fields are nested under the '<data_key>' key in the response object.
+    """
+    mdata = metadata.to_map(catalog.get_stream(stream_name).metadata)
+    fields = catalog.get_stream(stream_name).schema.properties.keys()
+    formatted_field_names = []
+    for field in fields:
+        field_metadata = mdata.get(('properties', field))
+        if should_sync_field(field_metadata.get('inclusion'), field_metadata.get('selected')):
+            formatted_field_names.append(data_key+'.'+field)
+
+    extra_fields = ['_links', 'total_items', 'constraints', data_key+'.'+'_links']
+    formatted_field_names += extra_fields
+    return ",".join(formatted_field_names)
+
 
 
 def should_sync_stream(streams_to_sync, dependants, stream_name):
