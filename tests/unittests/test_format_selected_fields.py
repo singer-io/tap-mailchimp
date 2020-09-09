@@ -36,5 +36,5 @@ class TestFormatSelectedFields(unittest.TestCase):
             ]}
         )
         actual = format_selected_fields(catalog, 'stream1', 'key1')
-        self.assertEqual(expected, actual)
+        self.assertEqual(','.join(sorted(expected.split(','))), ','.join(sorted(expected.split(','))))
 

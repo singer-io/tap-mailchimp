@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.0
+  * Filter fields on the request, rather than after the response is returned [#29](https://github.com/singer-io/tap-mailchimp/pull/29)
+
 ## 1.0.3
   * Fix resume batch logic [#27](https://github.com/singer-io/tap-mailchimp/pull/27)
 
