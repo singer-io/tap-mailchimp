@@ -20,6 +20,10 @@ PKS = {
     'unsubscribes': ['campaign_id', 'email_id']
 }
 
+REPLICATION_KEYS = {
+    'list_members': ['last_changed'],
+}
+
 def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
@@ -41,10 +45,11 @@ def get_schemas():
 
         SCHEMAS[stream_name] = schema
         pk = PKS[stream_name]
+        replication_keys = REPLICATION_KEYS.get(stream_name, [])
 
         metadata = []
         for prop in schema['properties'].keys():
-            if prop in pk:
+            if prop in pk or prop in replication_keys:
                 inclusion = 'automatic'
             else:
                 inclusion = 'available'

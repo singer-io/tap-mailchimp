@@ -28,15 +28,16 @@ class TestMailchimpDiscovery(unittest.TestCase):
         }
 
     def expected_check_streams(self):
+        """This is a map from stream name to the automatic fields"""
         return {
-            'automations',
-            'campaigns',
-            'list_members',
-            'list_segment_members',
-            'list_segments',
-            'lists',
-            'reports_email_activity',
-            'unsubscribes'
+            'campaigns': {'id'},
+            'list_segment_members': {'id'},
+            'list_segments': {'id'},
+            'lists': {'id'},
+            'reports_email_activity': {'campaign_id', 'action', 'email_id', 'timestamp'},
+            'unsubscribes': {'campaign_id', 'email_id'},
+            'automations': {'id'},
+            'list_members': {'id', 'list_id', 'last_changed'}
         }
 
     def tap_name(self):
@@ -63,6 +64,17 @@ class TestMailchimpDiscovery(unittest.TestCase):
 
         found_catalog_names = set(map(lambda c: c['tap_stream_id'], found_catalogs))
 
-        diff = self.expected_check_streams().symmetric_difference(found_catalog_names)
+        diff = set(self.expected_check_streams().keys()).symmetric_difference(found_catalog_names)
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are OK")
+
+        for catalog in found_catalogs:
+            catalog_entry = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
+            stream = catalog['stream_name']
+            automatic_fields = self.expected_check_streams()[stream]
+
+            for field in automatic_fields:
+                mdata = next((m for m in catalog_entry['metadata']
+                              if len(m['breadcrumb']) == 2 and m['breadcrumb'][1] == field), None)
+                print("Validating inclusion on {}: {}".format(catalog['stream_name'], mdata))
+                self.assertTrue(mdata and mdata['metadata']['inclusion'] == 'automatic')
