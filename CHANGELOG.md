@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.1
+  * Add 'last_changed' as a replication key to stream 'list_members' [#31](https://github.com/singer-io/tap-mailchimp/pull/31)
+
 ## 1.1.0
   * Filter fields on the request, rather than after the response is returned [#29](https://github.com/singer-io/tap-mailchimp/pull/29)
 
