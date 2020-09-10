@@ -51,6 +51,7 @@ class MailchimpBookmarks(unittest.TestCase):
 
 
     def expected_sync_streams(self):
+        """This is a map from stream name to the automatic fields"""
         return {
             'campaigns': {'id'},
             'list_segment_members': {'id'},
