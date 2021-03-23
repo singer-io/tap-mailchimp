@@ -21,7 +21,7 @@ jobs:
           name: 'JSON Validator'
           command: |
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
-            stitch-validate-json /usr/local/share/virtualenvs/tap-mailchimp/lib/python3.5/site-packages/tap_mailchimp/schemas/*.json
+            stitch-validate-json tap_mailchimp/schemas/*.json
       - add_ssh_keys
       - run:
           name: 'Unit Tests'
