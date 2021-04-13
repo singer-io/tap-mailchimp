@@ -243,8 +243,7 @@ def poll_email_activity(client, state, batch_id):
         if data['status'] == 'finished':
             return data
         elif (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
-            message = 'campaigns - export deadline exceeded ({} secs)'.format(
-                MAX_RETRY_ELAPSED_TIME)
+            message = 'Mailchimp campaigns export is still in progress after {} seconds. Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
             LOGGER.error(message)
             raise Exception(message)
 
