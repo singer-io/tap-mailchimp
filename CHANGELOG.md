@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.2
+  * Update error message when campaign export jobs exceed the timeout to indicate it is not actually an error [#38](https://github.com/singer-io/tap-mailchimp/pull/38)
+
 ## 1.1.1
   * Add 'last_changed' as a replication key to stream 'list_members' [#31](https://github.com/singer-io/tap-mailchimp/pull/31)
 
