@@ -30,6 +30,7 @@ Config properties:
 | `dc` | See note. | "us14" | The Mailchimp data center, only requried when using API key auth. |
 | `start_date` | Y | "2010-01-01T00:00:00Z" | The default start date to use for date modified replication, when available. |
 | `user_agent` | N | "Vandelay Industries ETL Runner" | The user agent to send on every request. |
+| `request_timeout` | N | 300 | Time for which request should wait to get response. |
 
 ## Usage 
 

@@ -1,11 +1,12 @@
 import backoff
 import requests
 import singer
-from requests.exceptions import ConnectionError # pylint: disable=redefined-builtin
+from requests.exceptions import ConnectionError, Timeout # pylint: disable=redefined-builtin
 from singer import metrics
 
 LOGGER = singer.get_logger()
 
+REQUEST_TIMEOUT = 300
 class ClientRateLimitError(Exception):
     pass
 
@@ -21,6 +22,13 @@ class MailchimpClient:
         self.__base_url = None
         self.page_size = int(config.get('page_size', '1000'))
 
+        # Set request timeout to config param `request_timeout` value.
+        # If value is 0,"0","" or not passed then it set default to 300 seconds.
+        config_request_timeout = config.get('request_timeout')
+        if config_request_timeout and float(config_request_timeout):
+            self.__request_timeout = float(config_request_timeout)
+        else:
+            self.__request_timeout = REQUEST_TIMEOUT
 
         if not self.__access_token and self.__api_key:
             self.__base_url = 'https://{}.api.mailchimp.com'.format(
@@ -38,6 +46,10 @@ class MailchimpClient:
                             endpoint='base_url')
         self.__base_url = data['api_endpoint']
 
+    @backoff.on_exception(backoff.expo,
+                          Timeout, # Backoff for request timeout
+                          max_tries=5,
+                          factor=2)
     @backoff.on_exception(backoff.expo,
                           (Server5xxError, ClientRateLimitError, ConnectionError),
                           max_tries=6,
@@ -74,7 +86,7 @@ class MailchimpClient:
 
         with metrics.http_request_timer(endpoint) as timer:
             LOGGER.info("Executing %s request to %s with params: %s", method, url, kwargs.get('params'))
-            response = self.__session.request(method, url, **kwargs)
+            response = self.__session.request(method, url, timeout=self.__request_timeout, **kwargs) # Pass request timeout
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code >= 500:
