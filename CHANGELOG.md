@@ -1,5 +1,7 @@
 # Changelog
 
+## 1 1 3
+  * Request Timeout Implementation [#43](https://github.com/singer-io/tap-mailchimp/pull/43)
 ## 1.1.2
   * Update error message when campaign export jobs exceed the timeout to indicate it is not actually an error [#38](https://github.com/singer-io/tap-mailchimp/pull/38)
 
