@@ -6,7 +6,7 @@ from singer import metrics
 
 LOGGER = singer.get_logger()
 
-REQUEST_TIMEOUT = 300
+REQUEST_TIMEOUT = 1500
 class ClientRateLimitError(Exception):
     pass
 
