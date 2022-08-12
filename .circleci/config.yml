@@ -1,4 +1,6 @@
-version: 2
+version: 2.1
+orbs:
+  slack: circleci/slack@3.4.2
 jobs:
   build:
     docker:
@@ -37,16 +39,20 @@ jobs:
       - run:
           name: 'Integration Tests'
           command: |
-            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/sandbox dev_env.sh
+            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
             source dev_env.sh
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             run-test --tap=tap-mailchimp tests
+      - slack/notify-on-failure:
+          only_for_branches: master
 workflows:
   version: 2
   commit:
     jobs:
       - build:
-          context: circleci-user
+          context: 
+          - circleci-user
+          - tap-tester-user
   build_daily:
     triggers:
       - schedule:
@@ -57,4 +63,6 @@ workflows:
                 - master
     jobs:
       - build:
-          context: circleci-user
+          context: 
+          - circleci-user
+          - tap-tester-user
