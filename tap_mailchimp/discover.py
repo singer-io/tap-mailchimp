@@ -4,7 +4,7 @@ from tap_mailchimp.streams import STREAMS
 def discover():
     catalog = Catalog([])
 
-    for stream, stream_obj in STREAMS.items():
+    for _, stream_obj in STREAMS.items():
         schemas, field_metadata = stream_obj.get_schema()
 
         # loop over the schema and prepare catalog

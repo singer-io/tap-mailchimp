@@ -54,11 +54,26 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
+def transform_activities(records):
+    for record in records:
+        if 'activity' in record:
+            if '_links' in record:
+                del record['_links']
+            record_template = dict(record)
+            del record_template['activity']
+
+            for activity in record['activity']:
+                new_activity = dict(record_template)
+                for key, value in activity.items():
+                    new_activity[key] = value
+                yield new_activity
+
 def nested_set(dic, path, value):
     for key in path[:-1]:
         dic = dic.setdefault(key, {})
     dic[path[-1]] = value
 
+# pylint: disable=too-many-instance-attributes
 class BaseStream:
     stream_name = None
     key_properties = None
@@ -132,10 +147,10 @@ class BaseStream:
         with metrics.record_counter(self.stream_name) as counter, Transformer() as transformer:
             for record in records:
                 if self.replication_keys and (max_bookmark_field is None or record[self.replication_keys] > max_bookmark_field):
-                        max_bookmark_field = record[self.replication_keys]
+                    max_bookmark_field = record[self.replication_keys]
                 record = transformer.transform(record,
-                                            schema,
-                                            stream_metadata)
+                                               schema,
+                                               stream_metadata)
                 singer.write_record(self.stream_name, record)
                 counter.increment()
             return max_bookmark_field
@@ -437,20 +452,6 @@ class ReportEmailActivity(Incremental):
                         sleep)
             time.sleep(sleep)
 
-    def transform_activities(self, records):
-        for record in records:
-            if 'activity' in record:
-                if '_links' in record:
-                    del record['_links']
-                record_template = dict(record)
-                del record_template['activity']
-
-                for activity in record['activity']:
-                    new_activity = dict(record_template)
-                    for key, value in activity.items():
-                        new_activity[key] = value
-                    yield new_activity
-
     def stream_email_activity(self, archive_url):
 
         failed_campaign_ids = []
@@ -472,7 +473,7 @@ class ReportEmailActivity(Incremental):
                                 response = json.loads(operation['response'])
                                 email_activities = response['emails']
 
-                                max_bookmark_field = self.process_records(self.transform_activities(email_activities), last_bookmark)
+                                max_bookmark_field = self.process_records(transform_activities(email_activities), last_bookmark)
                                 self.write_bookmark([self.stream_name, campaign_id], max_bookmark_field)
                     file = tar.next()
         return failed_campaign_ids

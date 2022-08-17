@@ -33,7 +33,7 @@ def sync(client, catalog, state, config):
         stream_id = stream.tap_stream_id
         stream_object = STREAMS.get(stream_id)(state, client, config, catalog, selected_stream_names, child_streams_to_sync)
 
-        LOGGER.info('START Syncing: {}'.format(stream_id))
+        LOGGER.info('START Syncing: %s', stream_id)
 
         # Set currently syncing stream
         state = singer.set_currently_syncing(state, stream_id)
@@ -41,7 +41,7 @@ def sync(client, catalog, state, config):
 
         stream_object.sync()
 
-        LOGGER.info('FINISHED Syncing: {}'.format(stream_id))
+        LOGGER.info('FINISHED Syncing: %s', stream_id)
 
     # remove currently_syncing at the end of the sync
     state = singer.set_currently_syncing(state, None)
