@@ -20,7 +20,6 @@ class MailchimpClient:
         self.__api_key = config.get('api_key')
         self.__session = requests.Session()
         self.__base_url = None
-        self.page_size = int(config.get('page_size', '1000'))
 
         # Set request timeout to config param `request_timeout` value.
         # If value is 0,"0","" or not passed then it set default to 300 seconds.

@@ -40,4 +40,4 @@ def main():
             sync(client,
                  parsed_args.catalog,
                  parsed_args.state,
-                 parsed_args.config['start_date'])
+                 parsed_args.config)
