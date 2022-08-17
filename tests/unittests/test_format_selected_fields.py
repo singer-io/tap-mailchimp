@@ -1,14 +1,14 @@
 import singer
-from tap_mailchimp.sync import format_selected_fields
+from tap_mailchimp.streams import Automations
 import unittest
 
 class TestFormatSelectedFields(unittest.TestCase):
     
     def test_format_selected_fields(self):
-        expected = 'key1.field1,key1.field2,_links,total_items,constraints,key1._links'
+        expected = 'automations.field1,automations.field2,_links,total_items,constraints,automations._links'
         catalog = singer.Catalog.from_dict(
             {"streams": [
-                {"tap_stream_id": "stream1",
+                {"tap_stream_id": "automations",
                  "schema": {"properties": {"field1" : {},
                                            "field2": {}}},
                  "metadata": [
@@ -35,6 +35,7 @@ class TestFormatSelectedFields(unittest.TestCase):
                 }
             ]}
         )
-        actual = format_selected_fields(catalog, 'stream1', 'key1')
-        self.assertEqual(','.join(sorted(expected.split(','))), ','.join(sorted(expected.split(','))))
+        stream = Automations({}, {}, {}, catalog, [], [])
+        actual = stream.format_selected_fields()
+        self.assertEqual(','.join(sorted(actual.split(','))), ','.join(sorted(expected.split(','))))
 
