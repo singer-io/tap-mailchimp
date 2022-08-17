@@ -77,7 +77,7 @@ def nested_set(dic, path, value):
 class BaseStream:
     stream_name = None
     key_properties = None
-    replication_keys = None
+    replication_keys = []
     replication_method = None
     path = None
     params = {}
@@ -134,7 +134,8 @@ class BaseStream:
         mdata_map = metadata.to_map(mdata)
         # update inclusion of "replication keys" as "automatic"
         if cls.replication_keys:
-            mdata_map[('properties', cls.replication_keys)]['inclusion'] = 'automatic'
+            for replication_key in cls.replication_keys:
+                mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
 
         field_metadata[cls.stream_name] = metadata.to_list(mdata_map)
 
@@ -146,8 +147,8 @@ class BaseStream:
         stream_metadata = metadata.to_map(stream.metadata)
         with metrics.record_counter(self.stream_name) as counter, Transformer() as transformer:
             for record in records:
-                if self.replication_keys and (max_bookmark_field is None or record[self.replication_keys] > max_bookmark_field):
-                    max_bookmark_field = record[self.replication_keys]
+                if self.replication_keys and (max_bookmark_field is None or record[self.replication_keys[0]] > max_bookmark_field):
+                    max_bookmark_field = record[self.replication_keys[0]]
                 record = transformer.transform(record,
                                                schema,
                                                stream_metadata)
@@ -333,7 +334,7 @@ class ListMembers(Incremental):
     data_key = 'members'
     bookmark_path = ['lists', '', stream_name, 'datetime']
     bookmark_query_field = 'since_last_changed'
-    replication_keys = 'last_changed'
+    replication_keys = ['last_changed']
 
 class ListSegments(FullTable):
     stream_name = 'list_segments'
@@ -377,7 +378,7 @@ class ReportEmailActivity(Incremental):
     streams_to_sync = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
-    replication_keys = 'timestamp'
+    replication_keys = ['timestamp']
 
     def write_activity_batch_bookmark(self, batch_id):
         self.write_bookmark(['reports_email_activity_last_run_id'], batch_id)
