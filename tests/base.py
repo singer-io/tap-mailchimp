@@ -112,28 +112,28 @@ class MailchimpBaseTest(unittest.TestCase):
         return set(self.expected_metadata().keys())
 
     def expected_replication_keys(self):
-        """return a dictionary with key of table name and value as a set of replication key fields"""
+        """Return a dictionary with key of table name and value as a set of replication key fields"""
 
         return {table: properties.get(self.REPLICATION_KEYS, set()) for table, properties
                 in self.expected_metadata().items()}
 
     def expected_primary_keys(self):
-        """return a dictionary with key of table name and value as a set of primary key fields"""
+        """Return a dictionary with key of table name and value as a set of primary key fields"""
         return {table: properties.get(self.PRIMARY_KEYS, set()) for table, properties
                 in self.expected_metadata().items()}
 
     def expected_replication_method(self):
-        """return a dictionary with key of table name nd value of replication method"""
+        """Return a dictionary with key of table name nd value of replication method"""
         return {table: properties.get(self.REPLICATION_METHOD, set()) for table, properties
                 in self.expected_metadata().items()}
 
     def get_bookmark_path(self):
-        """return bookmark path (the path at which bookmark is stored) for the stream"""
+        """Return bookmark path (the path at which bookmark is stored) for the stream"""
         return {table: properties.get(self.BOOKMARK_PATH, set()) for table, properties
                 in self.expected_metadata().items()}
 
     def expected_automatic_fields(self):
-        """return a dictionary with key of table name and set of value of automatic(primary key and bookmark field) fields"""
+        """Return a dictionary with key of table name and set of value of automatic(primary key and bookmark field) fields"""
         auto_fields = {}
         for k, v in self.expected_metadata().items():
             auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) |  v.get(self.REPLICATION_KEYS, set())
@@ -145,10 +145,10 @@ class MailchimpBaseTest(unittest.TestCase):
         This should be ran prior to field selection and initial sync.
         Return the connection id and found catalogs from menagerie.
         """
-        # run in check mode
+        # Run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)
 
-        # verify check exit codes
+        # Verify check exit codes
         exit_status = menagerie.get_exit_status(conn_id, check_job_name)
         menagerie.verify_check_exit_status(self, exit_status, check_job_name)
 
@@ -171,7 +171,7 @@ class MailchimpBaseTest(unittest.TestCase):
         # Run a sync job using orchestrator
         sync_job_name = runner.run_sync_mode(self, conn_id)
 
-        # verify tap and target exit codes
+        # Verify tap and target exit codes
         exit_status = menagerie.get_exit_status(conn_id, sync_job_name)
         menagerie.verify_sync_exit_status(self, exit_status, sync_job_name)
 
@@ -254,7 +254,7 @@ class MailchimpBaseTest(unittest.TestCase):
 
             non_selected_properties = []
             if not select_all_fields:
-                # get a list of all properties so that none are selected
+                # Get a list of all properties so that none are selected
                 non_selected_properties = schema.get('annotated-schema', {}).get(
                     'properties', {}).keys()
 

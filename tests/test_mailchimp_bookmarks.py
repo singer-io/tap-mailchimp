@@ -4,7 +4,7 @@ from base import MailchimpBaseTest
 from tap_tester import menagerie
 
 class MailchimpBookMark(MailchimpBaseTest):
-    """Test tap sets a bookmark and respects it for the next sync of a stream"""
+    """Test that tap sets a bookmark and respects it for the next sync of a stream"""
 
     def name(self):
         return "tap_tester_mailchimp_bookmark_test"
@@ -34,7 +34,7 @@ class MailchimpBookMark(MailchimpBaseTest):
             different values for the replication key
         """
 
-        # We need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now.
+        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now.
         expected_streams = self.expected_check_streams() - {'automations'}
 
         expected_replication_keys = self.expected_replication_keys()
@@ -48,7 +48,7 @@ class MailchimpBookMark(MailchimpBaseTest):
         # Run in check mode
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         catalog_entries = [catalog for catalog in found_catalogs
                            if catalog.get('tap_stream_id') in expected_streams]
 

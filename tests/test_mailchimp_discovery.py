@@ -9,14 +9,14 @@ class MailchimpDiscover(MailchimpBaseTest):
         • Verify the stream names discovered were what we expect
         • Verify stream names follow naming convention
           streams should only have lowercase alphas and underscores
-        • verify there is only 1 top level breadcrumb
-        • verify there are no duplicate metadata entries
-        • verify replication key(s)
-        • verify primary key(s)
-        • verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
-        • verify the actual replication matches our expected replication method
-        • verify that primary, replication keys are given the inclusion of automatic.
-        • verify that all other fields have inclusion of available metadata.
+        • Verify there is only 1 top level breadcrumb
+        • Verify there are no duplicate metadata entries
+        • Verify replication key(s)
+        • Verify primary key(s)
+        • Verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
+        • Verify the actual replication matches our expected replication method
+        • Verify that primary, replication keys are given the inclusion of automatic.
+        • Verify that all other fields have inclusion of available metadata.
     """
 
     def name(self):
@@ -32,7 +32,7 @@ class MailchimpDiscover(MailchimpBaseTest):
             conn_id)
 
         # Verify stream names follow naming convention
-        # streams should only have lowercase alphas and underscores
+        # Streams should only have lowercase alphas and underscores
         found_catalog_names = {c['tap_stream_id'] for c in found_catalogs}
         self.assertTrue(all([re.fullmatch(r"[a-z_]+",  name) for name in found_catalog_names]),
                         msg="One or more streams don't follow standard naming")
@@ -45,7 +45,7 @@ class MailchimpDiscover(MailchimpBaseTest):
                                      if catalog["stream_name"] == stream]))
                 self.assertIsNotNone(catalog)
 
-                # collecting expected values
+                # Collecting expected values
                 expected_primary_keys = self.expected_primary_keys()[stream]
                 expected_replication_keys = self.expected_replication_keys()[
                     stream]
@@ -53,7 +53,7 @@ class MailchimpDiscover(MailchimpBaseTest):
                 expected_replication_method = self.expected_replication_method()[
                     stream]
 
-                # collecting actual values...
+                # Collecting actual values...
                 schema_and_metadata = menagerie.get_annotated_schema(
                     conn_id, catalog['stream_id'])
                 metadata = schema_and_metadata["metadata"]
@@ -94,21 +94,21 @@ class MailchimpDiscover(MailchimpBaseTest):
                 #                 msg="There is NOT only one top level breadcrumb for {}".format(stream) +
                 #                 "\nstream_properties | {}".format(stream_properties))
 
-                # verify there are no duplicate metadata entries
+                # Verify there are no duplicate metadata entries
                 self.assertEqual(len(actual_fields), len(set(actual_fields)), msg = f"duplicates in the fields retrieved")
 
                 # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
-                # verify primary key(s) match expectations
+                # Verify primary key(s) match expectations
                 # self.assertSetEqual(
                 #     expected_primary_keys, actual_primary_keys,
                 # )
                 
-                # verify that primary keys and replication keys
+                # Verify that primary keys and replication keys
                 # are given the inclusion of automatic in metadata.
                 self.assertSetEqual(expected_automatic_fields,
                                     actual_automatic_fields)
 
-                # verify that all other fields have inclusion of available metadata
+                # Verify that all other fields have inclusion of available metadata
                 # This assumes there are no unsupported fields for SaaS sources
                 self.assertTrue(
                     all({item.get("metadata").get("inclusion") == "available"
@@ -119,7 +119,7 @@ class MailchimpDiscover(MailchimpBaseTest):
                     msg="Not all non key properties are set to available in metadata")
 
                 # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
-                # verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
+                # Verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
                 # if actual_replication_keys:
                 #     self.assertTrue(actual_replication_method == self.INCREMENTAL,
                 #                     msg="Expected INCREMENTAL replication "
@@ -129,13 +129,13 @@ class MailchimpDiscover(MailchimpBaseTest):
                 #                     msg="Expected FULL replication "
                 #                     "since there is no replication key")
 
-                # verify the actual replication matches our expected replication method
+                # Verify the actual replication matches our expected replication method
                 # self.assertEqual(expected_replication_method, actual_replication_method,
                 #                     msg="The actual replication method {} doesn't match the expected {}".format(
                 #                         actual_replication_method, expected_replication_method))
 
                 # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
-                # verify replication key(s) match expectations
+                # Verify replication key(s) match expectations
                 # self.assertEqual(expected_replication_keys, actual_replication_keys,
                 #                  msg="expected replication key {} but actual is {}".format(
                 #                      expected_replication_keys, actual_replication_keys))

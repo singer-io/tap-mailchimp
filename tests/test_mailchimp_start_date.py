@@ -16,15 +16,15 @@ class MailchimpStartDate(MailchimpBaseTest):
     def test_run(self):
         """
         Test that the start_date configuration is respected
-        • verify that a sync with a later start date has at least one record synced
+        • Verify that a sync with a later start date has at least one record synced
         and less records than the 1st sync with a previous start date
-        • verify that each stream has less records than the earlier start date sync
-        • verify all data from later start data has bookmark values >= start_date
+        • Verify that each stream has less records than the earlier start date sync
+        • Verify all data from later start data has bookmark values >= start_date
         """
         # Streams to verify start date tests
         expected_streams = self.expected_check_streams()
         
-        # We need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
+        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
         expected_streams = expected_streams - {'automations'}
 
         self.run_test(expected_streams= expected_streams)
@@ -39,19 +39,19 @@ class MailchimpStartDate(MailchimpBaseTest):
         # First Sync
         ##########################################################################
 
-        # instantiate connection
+        # Instantiate connection
         conn_id_1 = connections.ensure_connection(self)
 
-        # run check mode
+        # Run check mode
         found_catalogs_1 = self.run_and_verify_check_mode(conn_id_1)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs_1_all_fields = [catalog for catalog in found_catalogs_1
                                       if catalog.get('tap_stream_id') in expected_streams]
         self.perform_and_verify_table_and_field_selection(
             conn_id_1, test_catalogs_1_all_fields, select_all_fields=True)
 
-        # run initial sync
+        # Run initial sync
         record_count_by_stream_1 = self.run_and_verify_sync(conn_id_1)
         synced_records_1 = runner.get_records_from_target_output()
 
@@ -67,30 +67,30 @@ class MailchimpStartDate(MailchimpBaseTest):
         # Second Sync
         ##########################################################################
 
-        # create a new connection with the new start_date
+        # Create a new connection with the new start_date
         conn_id_2 = connections.ensure_connection(
             self, original_properties=False)
 
-        # run check mode
+        # Run check mode
         found_catalogs_2 = self.run_and_verify_check_mode(conn_id_2)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs_2_all_fields = [catalog for catalog in found_catalogs_2
                                       if catalog.get('tap_stream_id') in expected_streams]
         self.perform_and_verify_table_and_field_selection(
             conn_id_2, test_catalogs_2_all_fields, select_all_fields=True)
 
-        # run sync
+        # Run sync
         record_count_by_stream_2 = self.run_and_verify_sync(conn_id_2)
         synced_records_2 = runner.get_records_from_target_output()
 
         for stream in expected_streams:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_primary_keys = self.expected_primary_keys()[stream]
 
-                # collect information for assertions from syncs 1 & 2 base on expected values
+                # Collect information for assertions from syncs 1 & 2 base on expected values
                 record_count_sync_1 = record_count_by_stream_1.get(stream, 0)
                 record_count_sync_2 = record_count_by_stream_2.get(stream, 0)
 
@@ -106,7 +106,7 @@ class MailchimpStartDate(MailchimpBaseTest):
 
                 if self.expected_metadata()[stream][self.OBEYS_START_DATE]:
 
-                    # collect information specific to incremental streams from syncs 1 & 2
+                    # Collect information specific to incremental streams from syncs 1 & 2
                     expected_replication_key = next(
                         iter(self.expected_replication_keys().get(stream, [])))
                     replication_dates_1 = [row.get('data').get(expected_replication_key) for row in

@@ -19,14 +19,14 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
         
         expected_streams = self.expected_check_streams()
         
-        # We need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
+        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
         expected_streams = expected_streams - {'automations'}
         
         conn_id = connections.ensure_connection(self)
 
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs_automatic_fields = [catalog for catalog in found_catalogs
                                           if catalog.get('tap_stream_id') in expected_streams]
 
@@ -40,11 +40,11 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
         for stream in expected_streams:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_keys = self.expected_automatic_fields().get(stream)
                 expected_primary_keys = self.expected_primary_keys()[stream]
                 
-                # collect actual values
+                # Collect actual values
                 data = synced_records.get(stream, {})
                 record_messages_keys = [set(row['data'].keys())
                                         for row in data.get('messages', [])]
@@ -63,7 +63,7 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
                     self.assertSetEqual(expected_keys, actual_keys)
                     
                 # BUG: TDL-20303 PKs are not unique     
-                #Verify that all replicated records have unique primary key values.
+                # Verify that all replicated records have unique primary key values.
                 # self.assertEqual(len(primary_keys_list), 
                 #                     len(unique_primary_keys_list), 
                 #                     msg="Replicated record does not have unique primary key values.")

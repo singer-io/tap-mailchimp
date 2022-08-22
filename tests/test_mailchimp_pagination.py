@@ -24,14 +24,14 @@ class MailchimpPagination(MailchimpBaseTest):
         • Verify by pks that the data replicated matches the data we expect.
         """
         
-        # We need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
+        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
         streams_to_skip = {'automations'}
         
         streams_with_2_page_size = {'lists', 'list_segments', 'campaigns', 'unsubscribes'}
         streams_with_250_page_size = {'list_members', 'list_segment_members'}
         streams_with_1000_page_size = {'reports_email_activity'}
         
-        # verify all the stream are either skipped or tested
+        # Verify all the stream are either skipped or tested
         self.assertEqual(
             self.expected_check_streams() - streams_to_skip,
             streams_with_2_page_size | streams_with_250_page_size | streams_with_1000_page_size)
@@ -51,7 +51,7 @@ class MailchimpPagination(MailchimpBaseTest):
         conn_id = connections.ensure_connection(self)
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
-        # table and field selection
+        # Table and field selection
         test_catalogs_all_fields = [catalog for catalog in found_catalogs
                                     if catalog.get('tap_stream_id') in expected_streams]
 
@@ -70,7 +70,7 @@ class MailchimpPagination(MailchimpBaseTest):
         for stream in expected_streams:
             with self.subTest(stream=stream):
 
-                # expected values
+                # Expected values
                 expected_primary_keys = self.expected_primary_keys()[stream]
                 
                 # Collect information for assertions from syncs 1 & 2 base on expected values
@@ -81,7 +81,7 @@ class MailchimpPagination(MailchimpBaseTest):
                                      if message.get('action') == 'upsert']
 
          
-                # verify that we can paginate with all fields selected
+                # Verify that we can paginate with all fields selected
                 record_count_sync = record_count_by_stream.get(stream, 0)
                 self.assertGreater(record_count_sync, self.page_size,
                                     msg="The number of records is not over the stream max limit")
@@ -101,7 +101,7 @@ class MailchimpPagination(MailchimpBaseTest):
 
                         for other_index, other_page in enumerate(pages):
                             if current_index == other_index:
-                                continue  # don't compare the page to itself
+                                continue  # Don't compare the page to itself
 
                             self.assertTrue(
                                 current_page.isdisjoint(other_page), msg=f'other_page_primary_keys={other_page}'
