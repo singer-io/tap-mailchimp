@@ -14,8 +14,8 @@ class MailchimpBaseTest(unittest.TestCase):
     INCREMENTAL = "INCREMENTAL"
     OBEYS_START_DATE = "obey-start-date"
     BOOKMARK_PATH = "bookmark-path"
-    RECORD_DATETIME_FMT = "%Y-%m-%dT%H:%M:%S.000000Z"
-    BOOKMARK_DATETIME_FMT = "%Y-%m-%dT%H:%M:%S+00:00"
+    RECORD_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
+    BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S+00:00"
 
     def tap_name(self):
         """The name of the tap"""

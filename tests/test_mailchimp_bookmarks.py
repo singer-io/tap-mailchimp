@@ -130,11 +130,11 @@ class MailchimpBookMark(MailchimpBaseTest):
 
                     replication_key = list(expected_replication_keys[stream])[0]
 
-                    first_bookmark_value_ts = self.parse_date(first_bookmark_value, self.BOOKMARK_DATETIME_FMT)
+                    first_bookmark_value_ts = self.parse_date(first_bookmark_value, self.BOOKMARK_DATETIME_FORMAT)
 
-                    second_bookmark_value_ts = self.parse_date(second_bookmark_value, self.BOOKMARK_DATETIME_FMT)
+                    second_bookmark_value_ts = self.parse_date(second_bookmark_value, self.BOOKMARK_DATETIME_FORMAT)
 
-                    simulated_bookmark_value = self.parse_date(self.get_bookmark(new_states.get("bookmarks"), stream_bookmark_path), self.BOOKMARK_DATETIME_FMT)
+                    simulated_bookmark_value = self.parse_date(self.get_bookmark(new_states.get("bookmarks"), stream_bookmark_path), self.BOOKMARK_DATETIME_FORMAT)
 
                     # Verify the first sync sets a bookmark of the expected form
                     self.assertIsNotNone(first_bookmark_value)
@@ -148,7 +148,7 @@ class MailchimpBookMark(MailchimpBaseTest):
                     for record in first_sync_messages:
 
                         # Verify the first sync bookmark value is the max replication key value for a given stream
-                        replication_key_value = self.parse_date(record.get(replication_key), self.RECORD_DATETIME_FMT)
+                        replication_key_value = self.parse_date(record.get(replication_key), self.RECORD_DATETIME_FORMAT)
 
                         self.assertLessEqual(
                             replication_key_value,
@@ -158,7 +158,7 @@ class MailchimpBookMark(MailchimpBaseTest):
 
                     for record in second_sync_messages:
                         # Verify the second sync replication key value is Greater or Equal to the first sync bookmark
-                        replication_key_value = self.parse_date(record.get(replication_key), self.RECORD_DATETIME_FMT)
+                        replication_key_value = self.parse_date(record.get(replication_key), self.RECORD_DATETIME_FORMAT)
                         self.assertGreaterEqual(
                             replication_key_value,
                             simulated_bookmark_value,
