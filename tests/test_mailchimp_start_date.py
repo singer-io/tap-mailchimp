@@ -120,8 +120,7 @@ class MailchimpStartDate(MailchimpBaseTest):
                     for replication_date in replication_dates_1:
 
                         self.assertGreaterEqual(
-                            self.parse_date(replication_date), self.parse_date(
-                                self.start_date_1),
+                            self.parse_date(replication_date, self.RECORD_DATETIME_FMT), self.parse_date(self.start_date_1, self.RECORD_DATETIME_FMT),
                             msg="Report pertains to a date prior to our start date.\n" +
                             "Sync start_date: {}\n".format(self.start_date_1) +
                                 "Record date: {} ".format(replication_date)
@@ -131,8 +130,7 @@ class MailchimpStartDate(MailchimpBaseTest):
                     for replication_date in replication_dates_2:
 
                         self.assertGreaterEqual(
-                            self.parse_date(replication_date), self.parse_date(
-                                self.start_date_2),
+                            self.parse_date(replication_date, self.RECORD_DATETIME_FMT), self.parse_date(self.start_date_2, self.RECORD_DATETIME_FMT),
                             msg="Report pertains to a date prior to our start date.\n" +
                             "Sync start_date: {}\n".format(self.start_date_2) +
                                 "Record date: {} ".format(replication_date)

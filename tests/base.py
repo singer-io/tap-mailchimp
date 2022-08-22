@@ -13,6 +13,9 @@ class MailchimpBaseTest(unittest.TestCase):
     FULL_TABLE = "FULL_TABLE"
     INCREMENTAL = "INCREMENTAL"
     OBEYS_START_DATE = "obey-start-date"
+    BOOKMARK_PATH = "bookmark-path"
+    RECORD_DATETIME_FMT = "%Y-%m-%dT%H:%M:%S.000000Z"
+    BOOKMARK_DATETIME_FMT = "%Y-%m-%dT%H:%M:%S+00:00"
 
     def tap_name(self):
         """The name of the tap"""
@@ -55,44 +58,52 @@ class MailchimpBaseTest(unittest.TestCase):
             'automations': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False
+                self.OBEYS_START_DATE: False,
+                self.BOOKMARK_PATH: None
             },
             'campaigns': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False      
+                self.OBEYS_START_DATE: False,
+                self.BOOKMARK_PATH: None
             },
             'lists': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False
+                self.OBEYS_START_DATE: False,
+                self.BOOKMARK_PATH: None
             },
             'list_members': {
                 self.PRIMARY_KEYS: {'id','list_id'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'last_changed'},
-                self.OBEYS_START_DATE: True
+                self.OBEYS_START_DATE: True,
+                self.BOOKMARK_PATH: ['lists', '8c775a04fb', 'list_members', 'datetime']
             },
             'list_segments': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False
+                self.OBEYS_START_DATE: False,
+                self.BOOKMARK_PATH: None
             },
             'list_segment_members': {
                 self.PRIMARY_KEYS: {'id'},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False
+                self.OBEYS_START_DATE: False,
+                self.BOOKMARK_PATH: None
             },
             'reports_email_activity': {
                 self.PRIMARY_KEYS: {'action', 'campaign_id', 'email_id', 'timestamp'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'timestamp'},
-                self.OBEYS_START_DATE: True
+                self.OBEYS_START_DATE: True,
+                self.BOOKMARK_PATH: ['reports_email_activity', '32e6edcecb']
             },
             'unsubscribes': {
                 self.PRIMARY_KEYS: {'campaign_id', 'email_id'},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False
+                self.OBEYS_START_DATE: False,
+                self.BOOKMARK_PATH: None
             }
         }
 
@@ -115,7 +126,12 @@ class MailchimpBaseTest(unittest.TestCase):
         """return a dictionary with key of table name nd value of replication method"""
         return {table: properties.get(self.REPLICATION_METHOD, set()) for table, properties
                 in self.expected_metadata().items()}
-        
+
+    def get_bookmark_path(self):
+        """return bookmark path (the path at which bookmark is stored) for the stream"""
+        return {table: properties.get(self.BOOKMARK_PATH, set()) for table, properties
+                in self.expected_metadata().items()}
+
     def expected_automatic_fields(self):
         """return a dictionary with key of table name and set of value of automatic(primary key and bookmark field) fields"""
         auto_fields = {}
@@ -245,23 +261,9 @@ class MailchimpBaseTest(unittest.TestCase):
             connections.select_catalog_and_fields_via_metadata(
                 conn_id, catalog, schema, [], non_selected_properties)
 
-    def parse_date(self, date_value):
+    def parse_date(self, date_value, format):
         """
         Pass in string-formatted-datetime, parse the value, and return it as an unformatted datetime object.
         """
-        date_formats = {
-            "%Y-%m-%dT%H:%M:%S.%fZ",
-            "%Y-%m-%dT%H:%M:%SZ",
-            "%Y-%m-%dT%H:%M:%S.%f+00:00",
-            "%Y-%m-%dT%H:%M:%S+00:00",
-            "%Y-%m-%d"
-        }
-        for date_format in date_formats:
-            try:
-                date_stripped = dt.strptime(date_value, date_format)
-                return date_stripped
-            except ValueError:
-                continue
-
-        raise NotImplementedError(
-            "Tests do not account for dates of this format: {}".format(date_value))
+        date_stripped = dt.strptime(date_value, format)
+        return date_stripped
