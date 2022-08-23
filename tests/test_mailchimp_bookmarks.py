@@ -21,20 +21,20 @@ class MailchimpBookMark(MailchimpBaseTest):
 
     def test_run(self):
         """
-        Verify that for each stream you can do a sync which records bookmarks.
+        Verify that for each stream you can do a sync that records bookmarks.
         That a second sync respects the bookmark
             All data of the second sync is >= the bookmark from the first sync
-            The number of records in the 2nd sync is less then the first (This assumes that
+            The number of records in the 2nd sync is less than the first (This assumes that
                 new data added to the stream is done at a rate slow enough that you haven't
                 doubled the amount of data from the start date to the first sync between
                 the first sync and second sync run in this test)
-        Verify that for full table stream, all data replicated in sync 1 is replicated again in sync 2.
+        Verify that for the full table stream, all data replicated in sync 1 is replicated again in sync 2.
         PREREQUISITE
-        For EACH stream that is incrementally replicated there are multiple rows of data with
+        For EACH stream that is incrementally replicated, there are multiple rows of data with
             different values for the replication key
         """
 
-        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now.
+        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.
         expected_streams = self.expected_check_streams() - {'automations'}
 
         expected_replication_keys = self.expected_replication_keys()
@@ -103,7 +103,7 @@ class MailchimpBookMark(MailchimpBaseTest):
                 expected_replication_method = expected_replication_methods[stream]
                 stream_bookmark_path = bookmark_path.get(stream)
 
-                # Collect information for assertions from syncs 1 & 2 base on expected values
+                # Collect information for assertions from syncs 1 & 2 based on expected values
                 first_sync_count = first_sync_record_count.get(stream, 0)
                 second_sync_count = second_sync_record_count.get(stream, 0)
                 first_sync_messages = [
@@ -188,7 +188,7 @@ class MailchimpBookMark(MailchimpBaseTest):
                     # Verify the number of records in the second sync is the same as the first
                     self.assertEqual(second_sync_count, first_sync_count)
 
-                    # Verify that for full table stream, all data replicated in sync 1 is replicated again in sync 2
+                    # Verify that for the full table stream, all data replicated in sync 1 is replicated again in sync 2
                     for record in second_sync_messages:
                         self.assertIn(record, first_sync_messages)
                 else:

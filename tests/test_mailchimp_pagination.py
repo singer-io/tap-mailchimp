@@ -13,6 +13,7 @@ class MailchimpPagination(MailchimpBaseTest):
         return "tap_tester_mailchimp_pagination_test"
     
     def get_properties(self, original=True):
+        """Configuration properties required for the tap."""
         props = super().get_properties(original)
         props['page_size'] = self.page_size
         return props
@@ -24,29 +25,28 @@ class MailchimpPagination(MailchimpBaseTest):
         • Verify by pks that the data replicated matches the data we expect.
         """
         
-        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
+        # Need to upgrade the mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.
         streams_to_skip = {'automations'}
         
         streams_with_2_page_size = {'lists', 'list_segments', 'campaigns', 'unsubscribes'}
         streams_with_250_page_size = {'list_members', 'list_segment_members'}
         streams_with_1000_page_size = {'reports_email_activity'}
         
-        # Verify all the stream are either skipped or tested
+        # Verify all the streams are either skipped or tested
         self.assertEqual(
             self.expected_check_streams() - streams_to_skip,
             streams_with_2_page_size | streams_with_250_page_size | streams_with_1000_page_size)
         
-        self.page_size = 2
-        self.run_test(streams_with_2_page_size)
+        self.run_test(streams_with_2_page_size, 2)
 
-        self.page_size = 250
-        self.run_test(streams_with_250_page_size)
+        self.run_test(streams_with_250_page_size,250)
 
-        self.page_size = 1000
-        self.run_test(streams_with_1000_page_size)
+        self.run_test(streams_with_1000_page_size,1000)
         
-    def run_test(self, streams):
-    
+    def run_test(self, streams, page_size):
+
+        """Running the tap with different page size"""
+        self.page_size = page_size
         expected_streams = streams
         conn_id = connections.ensure_connection(self)
         found_catalogs = self.run_and_verify_check_mode(conn_id)

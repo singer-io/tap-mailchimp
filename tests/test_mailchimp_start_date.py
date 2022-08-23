@@ -3,7 +3,7 @@ from base import MailchimpBaseTest
 
 class MailchimpStartDate(MailchimpBaseTest):
     """
-    Ensure both all expected streams respect the start date. Run tap in check mode, 
+    Ensure all expected streams respect the start date. Run tap in check mode, 
     run 1st sync with start date = 2013-01-01, run check mode and 2nd sync on a new connection with start date = 2014-07-01.
     """
     
@@ -24,7 +24,7 @@ class MailchimpStartDate(MailchimpBaseTest):
         # Streams to verify start date tests
         expected_streams = self.expected_check_streams()
         
-        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now. 
+        # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.
         expected_streams = expected_streams - {'automations'}
 
         self.run_test(expected_streams= expected_streams)

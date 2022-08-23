@@ -1,14 +1,15 @@
 from tap_tester import runner, connections, menagerie
 from base import MailchimpBaseTest
 
+# Fields to remove for which data is not generated
+KNOWN_MISSING_FIELDS = {
+        'list_segment_members': {'interests'},
+        'campaigns': {'has_logo_merge_tag'}
+    }
+
 class MailchimpAllFields(MailchimpBaseTest):
     """Ensure running the tap with all streams and fields selected results in the replication of all fields."""
     
-    # Fields to remove for which data is not generated
-    fields_to_remove = {
-        'list_segment_members': ['interests'],
-        'campaigns': ['has_logo_merge_tag']
-    } 
     def name(self):
         return "tap_tester_mailchimp_all_fields_test"
 
@@ -77,10 +78,8 @@ class MailchimpAllFields(MailchimpBaseTest):
                     if message['action'] == 'upsert':
                         actual_all_keys.update(message['data'].keys())
                         
-                # Remove some fields as data cannot be generated / retrieved
-                fields = self.fields_to_remove.get(stream, []) 
-                for field in fields:
-                    expected_all_keys.remove(field)
+                # Remove some fields as data cannot be generated/retrieved
+                expected_all_keys = expected_all_keys - KNOWN_MISSING_FIELDS.get(stream, set())
                     
                 # Verify all fields for each stream are replicated
                 self.assertSetEqual(expected_all_keys, actual_all_keys)

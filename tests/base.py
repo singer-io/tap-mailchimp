@@ -4,6 +4,12 @@ from tap_tester import menagerie, runner, connections, LOGGER
 from datetime import datetime as dt
 
 class MailchimpBaseTest(unittest.TestCase):
+    """
+    Setup expectations for test sub classes.
+    Metadata describing streams.
+    A bunch of shared methods that are used in tap-tester tests.
+    Shared tap-specific methods (as needed).
+    """
     
     start_date = ""
     START_DATE_FORMAT = "%Y-%m-%dT00:00:00Z"
@@ -22,6 +28,7 @@ class MailchimpBaseTest(unittest.TestCase):
         return "tap-mailchimp"
     
     def setUp(self):
+        """Raising the error if required environment variables are missing"""
         required_env = {
             "TAP_MAILCHIMP_CLIENT_SECRET",
             "TAP_MAILCHIMP_CLIENT_ID",
@@ -32,6 +39,7 @@ class MailchimpBaseTest(unittest.TestCase):
             raise Exception("set " + ", ".join(missing_envs))
         
     def get_type(self):
+        """The expected url route ending"""
         return "platform.mailchimp"
 
     def get_credentials(self):
@@ -43,6 +51,7 @@ class MailchimpBaseTest(unittest.TestCase):
         }
 
     def get_properties(self, original=True):
+        """Configuration properties required for the tap."""
         if original:
             return {
                 'start_date' : '2013-01-01T00:00:00Z'
@@ -112,18 +121,18 @@ class MailchimpBaseTest(unittest.TestCase):
         return set(self.expected_metadata().keys())
 
     def expected_replication_keys(self):
-        """Return a dictionary with key of table name and value as a set of replication key fields"""
+        """Return a dictionary with the key of table name and value as a set of replication key fields"""
 
         return {table: properties.get(self.REPLICATION_KEYS, set()) for table, properties
                 in self.expected_metadata().items()}
 
     def expected_primary_keys(self):
-        """Return a dictionary with key of table name and value as a set of primary key fields"""
+        """Return a dictionary with the key of table name and value as a set of primary key fields"""
         return {table: properties.get(self.PRIMARY_KEYS, set()) for table, properties
                 in self.expected_metadata().items()}
 
     def expected_replication_method(self):
-        """Return a dictionary with key of table name nd value of replication method"""
+        """Return a dictionary with the key of table name nd value of replication method"""
         return {table: properties.get(self.REPLICATION_METHOD, set()) for table, properties
                 in self.expected_metadata().items()}
 
@@ -133,7 +142,7 @@ class MailchimpBaseTest(unittest.TestCase):
                 in self.expected_metadata().items()}
 
     def expected_automatic_fields(self):
-        """Return a dictionary with key of table name and set of value of automatic(primary key and bookmark field) fields"""
+        """Return a dictionary with the key of table name and set of value of automatic(primary key and bookmark field) fields"""
         auto_fields = {}
         for k, v in self.expected_metadata().items():
             auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) |  v.get(self.REPLICATION_KEYS, set())
@@ -142,8 +151,8 @@ class MailchimpBaseTest(unittest.TestCase):
     def run_and_verify_check_mode(self, conn_id):
         """
         Run the tap in check mode and verify it succeeds.
-        This should be ran prior to field selection and initial sync.
-        Return the connection id and found catalogs from menagerie.
+        This should be run prior to field selection and initial sync.
+        Return the connection id and found catalogs from the menagerie.
         """
         # Run in check mode
         check_job_name = runner.run_check_mode(self, conn_id)
@@ -193,7 +202,7 @@ class MailchimpBaseTest(unittest.TestCase):
                                                      test_catalogs,
                                                      select_all_fields=True):
         """
-        Perform table and field selection based off of the streams to select
+        Perform table and field selection based on the streams to select
         set and field selection parameters.
         Verify this results in the expected streams selected and all or no
         fields selected for those streams.
@@ -234,6 +243,7 @@ class MailchimpBaseTest(unittest.TestCase):
 
     @staticmethod
     def get_selected_fields_from_metadata(metadata):
+        """Return set of selected fields from the metadata"""
         selected_fields = set()
         for field in metadata:
             is_field_metadata = len(field['breadcrumb']) > 1
