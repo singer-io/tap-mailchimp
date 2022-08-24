@@ -52,14 +52,15 @@ class MailchimpBaseTest(unittest.TestCase):
 
     def get_properties(self, original=True):
         """Configuration properties required for the tap."""
+        return_value = {
+            "start_date" : "2013-01-01T00:00:00Z",
+        }
         if original:
-            return {
-                'start_date' : '2013-01-01T00:00:00Z'
-            }
-        else:
-            return {
-                'start_date' : '2014-07-01T00:00:00Z'
-            }
+            return return_value
+
+        # Reassign start date
+        return_value["start_date"] = self.start_date
+        return return_value
             
     def expected_metadata(self):
         """The expected streams and metadata about the streams"""
