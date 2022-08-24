@@ -59,20 +59,19 @@ class MailchimpDiscover(MailchimpBaseTest):
                     conn_id, catalog['stream_id'])
                 metadata = schema_and_metadata["metadata"]
                 
-                # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
-                # stream_properties = [
-                #     item for item in metadata if item.get("breadcrumb") == []]
+                stream_properties = [
+                    item for item in metadata if item.get("breadcrumb") == []]
                 
-                # actual_primary_keys = set(
-                #     stream_properties[0].get(
-                #         "metadata", {self.PRIMARY_KEYS: []}).get(self.PRIMARY_KEYS, [])
-                # )
-                # actual_replication_keys = set(
-                #     stream_properties[0].get(
-                #         "metadata", {self.REPLICATION_KEYS: []}).get(self.REPLICATION_KEYS, [])
-                # )
-                # actual_replication_method = stream_properties[0].get(
-                #     "metadata", {self.REPLICATION_METHOD: None}).get(self.REPLICATION_METHOD)
+                actual_primary_keys = set(
+                    stream_properties[0].get(
+                        "metadata", {self.PRIMARY_KEYS: []}).get(self.PRIMARY_KEYS, [])
+                )
+                actual_replication_keys = set(
+                    stream_properties[0].get(
+                        "metadata", {self.REPLICATION_KEYS: []}).get(self.REPLICATION_KEYS, [])
+                )
+                actual_replication_method = stream_properties[0].get(
+                    "metadata", {self.REPLICATION_METHOD: None}).get(self.REPLICATION_METHOD)
                 
                 
                 actual_automatic_fields = set(
@@ -89,20 +88,18 @@ class MailchimpDiscover(MailchimpBaseTest):
                 # metadata assertions
                 ##########################################################################
 
-                # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # verify there is only 1 top level breadcrumb in metadata
-                # self.assertTrue(len(stream_properties) == 1,
-                #                 msg="There is NOT only one top level breadcrumb for {}".format(stream) +
-                #                 "\nstream_properties | {}".format(stream_properties))
+                self.assertTrue(len(stream_properties) == 1,
+                                msg="There is NOT only one top level breadcrumb for {}".format(stream) +
+                                "\nstream_properties | {}".format(stream_properties))
 
                 # Verify there are no duplicate metadata entries
                 self.assertEqual(len(actual_fields), len(set(actual_fields)), msg = f"duplicates in the fields retrieved")
 
-                # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # Verify the primary key(s) match expectations
-                # self.assertSetEqual(
-                #     expected_primary_keys, actual_primary_keys,
-                # )
+                self.assertSetEqual(
+                    expected_primary_keys, actual_primary_keys,
+                )
                 
                 # Verify that primary keys and replication keys
                 # are given the inclusion of automatic in metadata.
@@ -119,24 +116,22 @@ class MailchimpDiscover(MailchimpBaseTest):
                          not in actual_automatic_fields}),
                     msg="Not all non key properties are set to available in metadata")
 
-                # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # Verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
-                # if actual_replication_keys:
-                #     self.assertTrue(actual_replication_method == self.INCREMENTAL,
-                #                     msg="Expected INCREMENTAL replication "
-                #                         "since there is a replication key")
-                # else:
-                #     self.assertTrue(actual_replication_method == self.FULL_TABLE,
-                #                     msg="Expected FULL replication "
-                #                     "since there is no replication key")
+                if actual_replication_keys:
+                    self.assertTrue(actual_replication_method == self.INCREMENTAL,
+                                    msg="Expected INCREMENTAL replication "
+                                        "since there is a replication key")
+                else:
+                    self.assertTrue(actual_replication_method == self.FULL_TABLE,
+                                    msg="Expected FULL replication "
+                                    "since there is no replication key")
 
                 # Verify the actual replication matches our expected replication method
-                # self.assertEqual(expected_replication_method, actual_replication_method,
-                #                     msg="The actual replication method {} doesn't match the expected {}".format(
-                #                         actual_replication_method, expected_replication_method))
+                self.assertEqual(expected_replication_method, actual_replication_method,
+                                    msg="The actual replication method {} doesn't match the expected {}".format(
+                                        actual_replication_method, expected_replication_method))
 
-                # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # Verify replication key(s) match expectations
-                # self.assertEqual(expected_replication_keys, actual_replication_keys,
-                #                  msg="expected replication key {} but actual is {}".format(
-                #                      expected_replication_keys, actual_replication_keys))
+                self.assertEqual(expected_replication_keys, actual_replication_keys,
+                                 msg="expected replication key {} but actual is {}".format(
+                                     expected_replication_keys, actual_replication_keys))
