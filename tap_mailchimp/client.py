@@ -7,11 +7,117 @@ from singer import metrics
 LOGGER = singer.get_logger()
 
 REQUEST_TIMEOUT = 300
+
 class ClientRateLimitError(Exception):
     pass
 
 class Server5xxError(Exception):
     pass
+
+class MailchimpError(Exception):
+    pass
+
+class MailchimpBadRequestError(MailchimpError):
+    pass
+
+class MailchimpUnAuthorizedError(MailchimpError):
+    pass
+
+class MailchimpForbiddenError(MailchimpError):
+    pass
+
+class MailchimpNotFoundError(MailchimpError):
+    pass
+
+class MailchimpMethodNotAllowedError(MailchimpError):
+    pass
+
+class MailchimpNestingError(MailchimpError):
+    pass
+
+class MailchimpInvalidMethodError(MailchimpError):
+    pass
+
+class MailchimpUpgradeError(MailchimpError):
+    pass
+
+class MailchimpRateLimitError(ClientRateLimitError):
+    pass
+
+class MailchimpInternalServerError(Server5xxError):
+    pass
+
+# Error glossary: https://mailchimp.com/developer/marketing/docs/errors/
+ERROR_CODE_EXCEPTION_MAPPING = {
+    400: {
+        "raise_exception": MailchimpBadRequestError,
+        "message": "Mailchimp Client faced a bad request."
+    },
+    401: {
+        "raise_exception": MailchimpUnAuthorizedError,
+        "message": "The API key is either invalid or disabled."
+    },
+    403: {
+        "raise_exception": MailchimpForbiddenError,
+        "message": "User does not have access to the requested operation."
+    },
+    404: {
+        "raise_exception": MailchimpNotFoundError,
+        "message": "The requested resource could not be found."
+    },
+    405: {
+        "raise_exception": MailchimpMethodNotAllowedError,
+        "message": "The resource does not accept the HTTP method."
+    },
+    414: {
+        "raise_exception": MailchimpNestingError,
+        "message": "The sub-resource requested is nested too deeply."
+    },
+    422: {
+        "raise_exception": MailchimpInvalidMethodError,
+        "message": "You can only use the X-HTTP-Method-Override header with the POST method."
+    },
+    426: {
+        "raise_exception": MailchimpUpgradeError,
+        "message": "Your request was made with the HTTP protocol. Please make your request via HTTPS rather than HTTP."
+    },
+    429: {
+        "raise_exception": MailchimpRateLimitError,
+        "message": "You have exceeded the limit of 10 simultaneous connections."
+    },
+    500: {
+        "raise_exception": MailchimpInternalServerError,
+        "message": "A deep internal error has occurred during the processing of your request."
+    }}
+
+def get_exception_for_error_code(status_code):
+    """Function to retrieve exceptions based on status_code"""
+
+    exception = ERROR_CODE_EXCEPTION_MAPPING.get(status_code, {}).get('raise_exception')
+    if not exception:
+        exception = Server5xxError if status_code > 500 else MailchimpError
+    return exception
+
+def raise_for_error(response):
+    """Function to raise an error by extracting the message from the error response"""
+    try:
+        json_response = response.json()
+
+    except Exception:
+        json_response = {}
+
+    status_code = response.status_code
+    msg = json_response.get(
+        "detail",
+        ERROR_CODE_EXCEPTION_MAPPING.get(status_code, {}).get(
+            "message", "Unknown Error"
+        ),
+    )
+
+    message = "HTTP-error-code: {}, Error: {}".format(status_code, msg)
+
+    exc = get_exception_for_error_code(status_code)
+    raise exc(message) from None
 
 class MailchimpClient:
     def __init__(self, config):
@@ -50,7 +156,7 @@ class MailchimpClient:
                           max_tries=5,
                           factor=2)
     @backoff.on_exception(backoff.expo,
-                          (Server5xxError, ClientRateLimitError, ConnectionError),
+                          (Server5xxError, MailchimpRateLimitError, ConnectionError),
                           max_tries=6,
                           factor=3)
     def request(self, method, path=None, url=None, s3=False, **kwargs):
@@ -88,13 +194,8 @@ class MailchimpClient:
             response = self.__session.request(method, url, timeout=self.__request_timeout, **kwargs) # Pass request timeout
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
-        if response.status_code >= 500:
-            raise Server5xxError()
-
-        if response.status_code == 429:
-            raise ClientRateLimitError()
-
-        response.raise_for_status()
+        if response.status_code != 200:
+            raise_for_error(response)
 
         if s3:
             return response
