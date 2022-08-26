@@ -4,16 +4,28 @@ from tap_mailchimp.streams import STREAMS
 LOGGER = singer.get_logger()
 
 def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
-    streams_to_sync = []
+    """Return streams to sync"""
+    # List of top-level stream names to sync
+    streams_to_sync_names = []
+    # List of child stream names to sync if the grandchild is selected and the child is not selected
     child_streams_to_sync = []
     for stream in selected_streams:
+        # Get parent stream
         parent_streams = STREAMS.get(stream.tap_stream_id).streams_to_sync
         if parent_streams:
+            # If the parent stream is not selected then add the stream to sync if it is not already present
             if parent_streams[0] not in selected_stream_names:
-                streams_to_sync.append(catalog.get_stream(parent_streams[0]))
+                if parent_streams[0] not in streams_to_sync_names:
+                    streams_to_sync_names.append(parent_streams[0])
             child_streams_to_sync += list(set(parent_streams[1:]))
         else:
-            streams_to_sync.append(stream)
+            # If the stream is a top-level stream then add the stream to sync if it is not already present
+            if stream.tap_stream_id not in streams_to_sync_names:
+                streams_to_sync_names.append(stream.tap_stream_id)
+
+    streams_to_sync = []
+    for stream in streams_to_sync_names:
+        streams_to_sync.append(catalog.get_stream(stream))
     return streams_to_sync, child_streams_to_sync
 
 # Function for sync mode
