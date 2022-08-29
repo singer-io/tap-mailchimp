@@ -3,9 +3,9 @@ from base import MailchimpBaseTest
 
 # Fields to remove for which data is not generated
 KNOWN_MISSING_FIELDS = {
-        'list_segment_members': {'interests'},
-        'campaigns': {'has_logo_merge_tag'}
-    }
+        'list_segment_members': {'interests', 'last_note'},
+        'list_members': {'interests', 'marketing_permissions'},
+        'campaigns': {'has_logo_merge_tag','ab_split_opts','variate_settings','parent_campaign_id', 'rss_opts'}}
 
 class MailchimpAllFields(MailchimpBaseTest):
     """Ensure running the tap with all streams and fields selected results in the replication of all fields."""
