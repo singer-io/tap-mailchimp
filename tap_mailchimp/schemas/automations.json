@@ -292,24 +292,27 @@
           "properties":{
             "hours":{
               "type": [
-              "null",
-              "object"
-            ],
-            "additionalProperties": true,
-            "properties":{
-              "type":{
-                "type":[
+                "null",
+                "object"
+              ],
+              "additionalProperties": true,
+              "properties":{
+                "type":{
+                  "type":[
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "days":{
+              "type":[
                 "null",
                 "string"
-              ]}
+              ]
             }
-          },
-          "days":{
-            "type":[
-            "null",
-            "string"
-          ]}
-        }},
+          }
+        },
         "workflow_title": {
           "type": [
             "null",

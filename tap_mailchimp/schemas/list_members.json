@@ -210,7 +210,7 @@
         "region": {
           "type": [
             "null",
-            "integer"
+            "string"
           ]
         },
         "country_code": {
