@@ -170,6 +170,7 @@ class BaseStream:
         """Function to update the API URL based on parent id and sync child stream"""
         child_stream_obj = STREAMS.get(child)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
         if child_stream_obj.replication_method == 'INCREMENTAL':
+            # Updated the bookmark path with parent id, as the Tap saves bookmark based on parent's id
             child_stream_obj.bookmark_path[1] = parent_record_id
         child_stream_obj.path = self.get_path(parent_record_id, child_stream_obj)
         child_stream_obj.sync()
