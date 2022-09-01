@@ -22,14 +22,13 @@ class BatchExpiredError(Exception):
     pass
 
 def next_sleep_interval(previous_sleep_interval):
+    """Function to send the time to sleep based on previous sleep interval"""
     min_interval = previous_sleep_interval or MIN_RETRY_INTERVAL
     max_interval = previous_sleep_interval * 2 or MIN_RETRY_INTERVAL
     return min(MAX_RETRY_INTERVAL, random.randint(min_interval, max_interval))
 
-def get_abs_path(path):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
-
 def chunk_campaigns(sorted_campaigns, chunk_bookmark):
+    """Function to break list for sorted campaigns into the batch size and send the chunked list"""
     chunk_start = chunk_bookmark * EMAIL_ACTIVITY_BATCH_SIZE
     chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
 
@@ -55,6 +54,7 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
 def transform_activities(records):
+    """Function to move activity at the top-level from the email activity records"""
     for record in records:
         if 'activity' in record:
             if '_links' in record:
@@ -69,6 +69,7 @@ def transform_activities(records):
                 yield new_activity
 
 def nested_set(dic, path, value):
+    """Function to set bookmark of child stream for every parent ids"""
     for key in path[:-1]:
         dic = dic.setdefault(key, {})
     dic[path[-1]] = value
@@ -100,6 +101,7 @@ class BaseStream:
         self.child_streams_to_sync = child_streams_to_sync
 
     def get_path(self, parent_id, child_stream_obj):
+        """Function to return the API URL path based on the parent ids"""
         if child_stream_obj.stream_name in ['unsubscribes', 'reports_email_activity']:
             return child_stream_obj.path.format(parent_id)
         return self.path + '/' + str(parent_id) + child_stream_obj.path
@@ -110,38 +112,8 @@ class BaseStream:
         schema = stream.schema.to_dict()
         singer.write_schema(cls.stream_name, schema, stream.key_properties)
 
-    @classmethod
-    def get_schema(cls):
-        schemas = {}
-        field_metadata = {}
-        schema_path = get_abs_path('schemas/{}.json'.format(cls.stream_name))
-
-        with open(schema_path) as file:
-            schema = json.load(file)
-        schemas[cls.stream_name] = schema
-
-        # Documentation:
-        #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#singer-python-helper-functions
-        # Reference:
-        #   https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
-        mdata = metadata.get_standard_metadata(
-            schema=schema,
-            key_properties=cls.key_properties,
-            valid_replication_keys=cls.replication_keys,
-            replication_method=cls.replication_method
-        )
-
-        mdata_map = metadata.to_map(mdata)
-        # update inclusion of "replication keys" as "automatic"
-        if cls.replication_keys:
-            for replication_key in cls.replication_keys:
-                mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
-
-        field_metadata[cls.stream_name] = metadata.to_list(mdata_map)
-
-        return schemas, field_metadata
-
     def process_records(self, records, max_bookmark_field=None):
+        """Function to transform and write records and get the maximum bookmark value"""
         stream = self.stream
         schema = stream.schema.to_dict()
         stream_metadata = metadata.to_map(stream.metadata)
@@ -157,6 +129,7 @@ class BaseStream:
             return max_bookmark_field
 
     def get_bookmark(self, path, default):
+        """Function to get the bookmark at a particular path from the state"""
         dic = self.state
         for key in ['bookmarks'] + path:
             if key in dic:
@@ -195,6 +168,7 @@ class BaseStream:
         return ",".join(formatted_field_names)
 
     def sync_substream(self, child, parent_record_id):
+        """Function to update the API URL based on parent id and sync child stream"""
         child_stream_obj = STREAMS.get(child)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
         if child_stream_obj.replication_method == 'INCREMENTAL':
             child_stream_obj.bookmark_path[1] = parent_record_id
@@ -205,6 +179,7 @@ class FullTable(BaseStream):
     replication_method = 'FULL_TABLE'
 
     def sync(self):
+        """Function to sync records and call child stream for every records"""
 
         ids = []
         page_size = int(self.config.get('page_size', '1000'))
@@ -381,9 +356,11 @@ class ReportEmailActivity(Incremental):
     replication_keys = ['timestamp']
 
     def write_activity_batch_bookmark(self, batch_id):
+        """Write batch id bookmark"""
         self.write_bookmark(['reports_email_activity_last_run_id'], batch_id)
 
     def write_email_activity_chunk_bookmark(self, current_bookmark, current_index, sorted_campaigns):
+        """Write chunk bookmark for email activities"""
         # Bookmark the next chunk because the current chunk will be saved in batch_id
         # Index is relative to current bookmark
         next_chunk = current_bookmark + current_index + 1
@@ -393,6 +370,7 @@ class ReportEmailActivity(Incremental):
             self.write_bookmark(['reports_email_activity_next_chunk'], 0)
 
     def get_batch_info(self, batch_id):
+        """Function to get batch status"""
         try:
             return self.client.get('/batches/{}'.format(batch_id), endpoint='get_batch_info')
         except HTTPError as e:
@@ -401,6 +379,7 @@ class ReportEmailActivity(Incremental):
             raise e
 
     def check_and_resume_email_activity_batch(self):
+        """Function to resume batch syncing from previous sync"""
         batch_id = self.get_bookmark(['reports_email_activity_last_run_id'], None)
 
         if batch_id:
@@ -420,6 +399,7 @@ class ReportEmailActivity(Incremental):
             self.sync_email_activities(campaigns, batch_id)
 
     def poll_email_activity(self, batch_id):
+        """Get the email activity URL after the batch as executed"""
         sleep = 0
         start_time = time.time()
         while True:
@@ -454,6 +434,7 @@ class ReportEmailActivity(Incremental):
             time.sleep(sleep)
 
     def stream_email_activity(self, archive_url):
+        """Get the Email Activities from the provided URL after batch completion"""
 
         failed_campaign_ids = []
 
@@ -480,6 +461,7 @@ class ReportEmailActivity(Incremental):
         return failed_campaign_ids
 
     def sync_email_activities(self, campaign_ids, batch_id=None):
+        """Sync email activities ie. create the batch, get response URL and fetch data from the response URL"""
         if batch_id:
             LOGGER.info('reports_email_activity - Picking up previous run: %s', batch_id)
         else:
@@ -520,6 +502,7 @@ class ReportEmailActivity(Incremental):
         self.write_activity_batch_bookmark(None)
 
     def sync_report_activities(self, campaign_ids):
+        """Function to loop over chunk of campaigns and sync email activities"""
         # Resume the previous batch, if necessary
         self.check_and_resume_email_activity_batch()
 
