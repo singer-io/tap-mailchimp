@@ -1,8 +1,8 @@
 import json
 import os
-from tap_mailchimp.streams import STREAMS
 from singer import metadata
 from singer.catalog import Catalog, CatalogEntry, Schema
+from tap_mailchimp.streams import STREAMS
 
 def get_abs_path(path):
     """Function to get the path of the stream schema file"""
