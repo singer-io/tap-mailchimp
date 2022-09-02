@@ -194,7 +194,8 @@ class BaseStream:
             if self.bookmark_query_field:
                 params[self.bookmark_query_field] = last_datetime
 
-            LOGGER.info('%s - Syncing - %scount: %s, offset: %s',
+            LOGGER.info(
+                '%s - Syncing - %scount: %s, offset: %s',
                 self.stream_name,
                 'since: {}, '.format(last_datetime) if self.bookmark_query_field else '',
                 page_size,
@@ -214,19 +215,27 @@ class BaseStream:
             if len(raw_records) < page_size:
                 has_more = False
 
+            # Loop over every records and sync child stream
             for record in raw_records:
                 del record['_links']
+                # Store 'ids' for reports streams
                 ids.append(record.get('id'))
                 if self.child:
                     for child in self.child:
+                        # Skip reports child stream sync as it syncs for the list of parent ids
                         if child in self.report_streams:
                             continue
+                        # If the child stream is selected or the grandchild is selected then sync child stream
                         if child in self.selected_stream_names or child in self.child_streams_to_sync:
                             self.sync_substream(child, record.get('id'))
+
+            # If the stream is selected then write records
             if self.to_write_records:
                 max_bookmark_field = self.process_records(raw_records, max_bookmark_field)
 
+            # Sync 'reports' stream based on 'ids' collected for every record
             for report_stream in self.report_streams:
+                # Skip the sync if the stream is not selected
                 if report_stream not in self.selected_stream_names:
                     continue
                 reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
@@ -245,8 +254,8 @@ class Incremental(BaseStream):
 
     def sync(self, sync_start_date=None):
         """Run sync with 'last_datetime' param"""
-        sync_start_date = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
-        super().sync(sync_start_date)
+        bookmark = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
+        super().sync(sync_start_date=bookmark)
 
 class Automations(FullTable):
     stream_name = 'automations'
