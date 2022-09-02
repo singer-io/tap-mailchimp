@@ -175,66 +175,12 @@ class BaseStream:
         child_stream_obj.path = self.get_path(parent_record_id, child_stream_obj)
         child_stream_obj.sync()
 
-class FullTable(BaseStream):
-    replication_method = 'FULL_TABLE'
-
-    def sync(self):
+    def sync(self, sync_start_date=None):
         """Function to sync records and call child stream for every records"""
-
-        ids = []
-        page_size = int(self.config.get('page_size', '1000'))
-        offset = 0
-        has_more = True
-        while has_more:
-            params = {
-                'count': page_size,
-                'offset': offset,
-                **self.params
-            }
-
-            LOGGER.info('%s - Syncing - count: %s, offset: %s', self.stream_name, page_size, offset)
-
-            formatted_selected_fields = self.format_selected_fields()
-
-            params['fields'] = formatted_selected_fields
-            data = self.client.get(
-                self.path,
-                params=params,
-                endpoint=self.stream_name)
-
-            raw_records = data.get(self.data_key)
-
-            if len(raw_records) < page_size:
-                has_more = False
-
-            for record in raw_records:
-                del record['_links']
-                ids.append(record.get('id'))
-                if self.child:
-                    for child in self.child:
-                        if child in self.report_streams:
-                            continue
-                        if child in self.selected_stream_names or child in self.child_streams_to_sync:
-                            self.sync_substream(child, record.get('id'))
-            if self.to_write_records:
-                self.process_records(raw_records)
-
-            for report_stream in self.report_streams:
-                if report_stream not in self.selected_stream_names:
-                    continue
-                reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
-                reports_stream_obj.sync_report_activities(ids)
-
-            offset += page_size
-
-class Incremental(BaseStream):
-    replication_method = 'INCREMENTAL'
-
-    def sync(self):
-        last_datetime = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
+        last_datetime = sync_start_date
         max_bookmark_field = last_datetime
-        ids = []
 
+        ids = []
         page_size = int(self.config.get('page_size', '1000'))
         offset = 0
         has_more = True
@@ -245,9 +191,15 @@ class Incremental(BaseStream):
                 **self.params
             }
 
-            params[self.bookmark_query_field] = last_datetime
+            if self.bookmark_query_field:
+                params[self.bookmark_query_field] = last_datetime
 
-            LOGGER.info('%s - Syncing - %scount: %s, offset: %s', self.stream_name, 'since: {}, '.format(last_datetime), page_size, offset)
+            LOGGER.info('%s - Syncing - %scount: %s, offset: %s',
+                self.stream_name,
+                'since: {}, '.format(last_datetime) if self.bookmark_query_field else '',
+                page_size,
+                offset
+            )
 
             formatted_selected_fields = self.format_selected_fields()
 
@@ -280,9 +232,21 @@ class Incremental(BaseStream):
                 reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
                 reports_stream_obj.sync_report_activities(ids)
 
-            self.write_bookmark(self.bookmark_path, max_bookmark_field)
+            if self.bookmark_query_field:
+                self.write_bookmark(self.bookmark_path, max_bookmark_field)
 
             offset += page_size
+
+class FullTable(BaseStream):
+    replication_method = 'FULL_TABLE'
+
+class Incremental(BaseStream):
+    replication_method = 'INCREMENTAL'
+
+    def sync(self, sync_start_date=None):
+        """Run sync with 'last_datetime' param"""
+        sync_start_date = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
+        super().sync(sync_start_date)
 
 class Automations(FullTable):
     stream_name = 'automations'
