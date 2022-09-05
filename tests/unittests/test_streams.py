@@ -99,7 +99,7 @@ class StreamsTest(unittest.TestCase):
         while len(sorted_campaigns) < 250 :
             sorted_campaigns.append("016cb6c4e7")
 
-        chunk_campaigns = streams.chunk_campaigns(sorted_campaigns, test_value_1, {'chunk_size': 0})
+        chunk_campaigns = streams.chunk_campaigns(sorted_campaigns, test_value_1)
 
         self.assertEqual(len(list(chunk_campaigns)), test_value_2)
 
