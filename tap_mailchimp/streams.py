@@ -17,6 +17,8 @@ MAX_RETRY_ELAPSED_TIME = 43200 # 12 hours
 # Break up reports_email_activity batches to iterate over chunks
 EMAIL_ACTIVITY_BATCH_SIZE = 100
 
+DEFAULT_PAGE_SIZE = 1000
+
 class BatchExpiredError(Exception):
     pass
 
@@ -181,7 +183,7 @@ class BaseStream:
         max_bookmark_field = last_datetime
 
         ids = []
-        page_size = int(self.config.get('page_size', '1000'))
+        page_size = int(self.config.get('page_size', DEFAULT_PAGE_SIZE))
         offset = 0
         has_more = True
         while has_more:
@@ -217,6 +219,7 @@ class BaseStream:
 
             # Loop over every records and sync child stream
             for record in raw_records:
+                # Remove '_links' as it contains API schema docs
                 del record['_links']
                 # Store 'ids' for reports streams
                 ids.append(record.get('id'))
@@ -422,6 +425,7 @@ class ReportEmailActivity(Incremental):
                             campaign_id = operation['operation_id']
                             last_bookmark = self.state.get('bookmarks', {}).get(self.stream_name, {}).get(campaign_id)
                             LOGGER.info("reports_email_activity - [batch operation %s] Processing records for campaign %s", i, campaign_id)
+                            # If we did not get successful records for a campaign, then log the failed campaign ids
                             if operation['status_code'] != 200:
                                 failed_campaign_ids.append(campaign_id)
                             else:
