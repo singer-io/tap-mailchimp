@@ -111,7 +111,7 @@ def raise_for_error(response):
         "detail",
         ERROR_CODE_EXCEPTION_MAPPING.get(status_code, {}).get(
             "message", "Unknown Error"
-        ),
+        )
     )
 
     message = "HTTP-error-code: {}, Error: {}".format(status_code, msg)
