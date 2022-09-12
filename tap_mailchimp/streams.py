@@ -28,32 +28,6 @@ def next_sleep_interval(previous_sleep_interval):
     max_interval = previous_sleep_interval * 2 or MIN_RETRY_INTERVAL
     return min(MAX_RETRY_INTERVAL, random.randint(min_interval, max_interval))
 
-def chunk_campaigns(sorted_campaigns, chunk_bookmark):
-    """Function to break list for sorted campaigns into the batch size and send the chunked list"""
-    chunk_start = chunk_bookmark * EMAIL_ACTIVITY_BATCH_SIZE
-    chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
-
-    if chunk_bookmark > 0:
-        LOGGER.info("reports_email_activity - Resuming requests starting at campaign_id %s (index %s) in chunks of %s",
-                    sorted_campaigns[chunk_start],
-                    chunk_start,
-                    EMAIL_ACTIVITY_BATCH_SIZE)
-
-    done = False
-    while not done:
-        current_chunk = sorted_campaigns[chunk_start:chunk_end]
-        done = len(current_chunk) == 0
-        if not done:
-            end_index = min(chunk_end, len(sorted_campaigns))
-            LOGGER.info("reports_email_activity - Will request for campaign_ids from %s to %s (index %s to %s)",
-                        sorted_campaigns[chunk_start],
-                        sorted_campaigns[end_index - 1],
-                        chunk_start,
-                        end_index - 1)
-            yield current_chunk
-        chunk_start = chunk_end
-        chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
-
 def transform_activities(records):
     """Function to move activity at the top-level from the email activity records"""
     for record in records:
@@ -331,6 +305,54 @@ class ReportEmailActivity(Incremental):
     data_key = 'emails'
     replication_keys = ['timestamp']
 
+    def __init__(self, state, client, config, catalog, selected_stream_names, child_streams_to_sync):
+        super().__init__(state, client, config, catalog, selected_stream_names, child_streams_to_sync)
+
+        try:
+            self.chunk_size = config.get('chunk_size', EMAIL_ACTIVITY_BATCH_SIZE) # added configurable chunk size
+            # If the provided chunk_size is zero, then raise an error
+            if self.chunk_size in (0, '0'):
+                LOGGER.info("The chunk_size cannot be Zero(0).")
+                raise ValueError
+            # Look if we can convert provided chunk_size into the integer
+            elif (self.chunk_size and int(str(self.chunk_size))):
+                self.chunk_size = int(self.chunk_size)
+                # If the chunk_size is negative, then raise an error
+                if self.chunk_size < 0:
+                    LOGGER.info("The chunk_size cannot be negative.")
+                    raise ValueError
+            else:
+                # Assign default chunk_size
+                self.chunk_size = EMAIL_ACTIVITY_BATCH_SIZE
+        except ValueError:
+            raise ValueError('Please provide a valid integer value for the chunk_size parameter.') from None
+
+    def chunk_campaigns(self, sorted_campaigns, chunk_bookmark):
+        """Function to break list for sorted campaigns into the batch size and send the chunked list"""
+        chunk_start = chunk_bookmark * self.chunk_size
+        chunk_end = chunk_start + self.chunk_size
+
+        if chunk_bookmark > 0:
+            LOGGER.info("reports_email_activity - Resuming requests starting at campaign_id %s (index %s) in chunks of %s",
+                        sorted_campaigns[chunk_start],
+                        chunk_start,
+                        self.chunk_size)
+
+        done = False
+        while not done:
+            current_chunk = sorted_campaigns[chunk_start:chunk_end]
+            done = len(current_chunk) == 0
+            if not done:
+                end_index = min(chunk_end, len(sorted_campaigns))
+                LOGGER.info("reports_email_activity - Will request for campaign_ids from %s to %s (index %s to %s)",
+                            sorted_campaigns[chunk_start],
+                            sorted_campaigns[end_index - 1],
+                            chunk_start,
+                            end_index - 1)
+                yield current_chunk
+            chunk_start = chunk_end
+            chunk_end += self.chunk_size
+
     def write_activity_batch_bookmark(self, batch_id):
         """Write batch id bookmark"""
         self.write_bookmark(['reports_email_activity_last_run_id'], batch_id)
@@ -340,7 +362,7 @@ class ReportEmailActivity(Incremental):
         # Bookmark the next chunk because the current chunk will be saved in batch_id
         # Index is relative to current bookmark
         next_chunk = current_bookmark + current_index + 1
-        if next_chunk * EMAIL_ACTIVITY_BATCH_SIZE < len(sorted_campaigns):
+        if next_chunk * self.chunk_size < len(sorted_campaigns):
             self.write_bookmark(['reports_email_activity_next_chunk'], next_chunk)
         else:
             self.write_bookmark(['reports_email_activity_next_chunk'], 0)
@@ -486,7 +508,7 @@ class ReportEmailActivity(Incremental):
         # Chunk batch_ids, bookmarking the chunk number
         sorted_campaigns = sorted(campaign_ids)
         chunk_bookmark = int(self.get_bookmark(['reports_email_activity_next_chunk'], 0))
-        for i, campaign_chunk in enumerate(chunk_campaigns(sorted_campaigns, chunk_bookmark)):
+        for i, campaign_chunk in enumerate(self.chunk_campaigns(sorted_campaigns, chunk_bookmark)):
             self.write_email_activity_chunk_bookmark(chunk_bookmark, i, sorted_campaigns)
             self.sync_email_activities(campaign_chunk)
 

@@ -99,7 +99,9 @@ class StreamsTest(unittest.TestCase):
         while len(sorted_campaigns) < 250 :
             sorted_campaigns.append("016cb6c4e7")
 
-        chunk_campaigns = streams.chunk_campaigns(sorted_campaigns, test_value_1)
+        client = MailchimpClient({})
+        stream = streams.ReportEmailActivity({}, client, {}, Catalog('reports_email_activity'), [], [])
+        chunk_campaigns = stream.chunk_campaigns(sorted_campaigns, test_value_1)
 
         self.assertEqual(len(list(chunk_campaigns)), test_value_2)
 
@@ -326,14 +328,14 @@ class StreamsTest(unittest.TestCase):
             'reports_email_activity' stream.
         '''
 
-        _object_ = streams.ReportEmailActivity
+        client = MailchimpClient({})
+        _object_ = streams.ReportEmailActivity({}, client, {}, Catalog('reports_email_activity'), [], [])
         sorted_campaigns_ = []
 
         while len(sorted_campaigns_) < test_value1 :
             sorted_campaigns_.append("016cb6c4e7")
 
-        _object_.write_email_activity_chunk_bookmark(self.obj,
-            current_bookmark=2, current_index=1, sorted_campaigns=sorted_campaigns_)
+        _object_.write_email_activity_chunk_bookmark(current_bookmark=2, current_index=1, sorted_campaigns=sorted_campaigns_)
 
         self.assertTrue(mocked_write_bookmark.called)
 
