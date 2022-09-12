@@ -3,6 +3,7 @@ import requests
 import singer
 from requests.exceptions import ConnectionError, Timeout # pylint: disable=redefined-builtin
 from singer import metrics
+import functools
 
 LOGGER = singer.get_logger()
 
@@ -119,6 +120,21 @@ def raise_for_error(response):
     exc = get_exception_for_error_code(status_code)
     raise exc(message) from None
 
+def retry_pattern(fnc):
+    """Function for backoff"""
+    @backoff.on_exception(backoff.expo,
+                            Timeout, # Backoff for request timeout
+                            max_tries=5,
+                            factor=2)
+    @backoff.on_exception(backoff.expo,
+                            (Server5xxError, MailchimpRateLimitError, ConnectionError),
+                            max_tries=6,
+                            factor=3)
+    @functools.wraps(fnc)
+    def wrapper(*args, **kwargs):
+        return fnc(*args, **kwargs)
+    return wrapper
+
 class MailchimpClient:
     def __init__(self, config):
         self.__user_agent = config.get('user_agent')
@@ -151,14 +167,6 @@ class MailchimpClient:
                             endpoint='base_url')
         self.__base_url = data['api_endpoint']
 
-    @backoff.on_exception(backoff.expo,
-                          Timeout, # Backoff for request timeout
-                          max_tries=5,
-                          factor=2)
-    @backoff.on_exception(backoff.expo,
-                          (Server5xxError, MailchimpRateLimitError, ConnectionError),
-                          max_tries=6,
-                          factor=3)
     def request(self, method, path=None, url=None, s3=False, **kwargs):
         if url is None and self.__base_url is None:
             self.get_base_url()
@@ -202,8 +210,10 @@ class MailchimpClient:
 
         return response.json()
 
+    @retry_pattern
     def get(self, path, **kwargs):
         return self.request('GET', path=path, **kwargs)
 
+    @retry_pattern
     def post(self, path, **kwargs):
         return self.request('POST', path=path, **kwargs)

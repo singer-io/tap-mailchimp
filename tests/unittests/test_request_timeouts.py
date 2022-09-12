@@ -15,24 +15,6 @@ def get_mock_http_response(*args, **kwargs):
     response._content = contents.encode()
     return response
 
-@patch("time.sleep")
-@patch("requests.Session.request", side_effect=requests.exceptions.Timeout)
-class TestRequestTimeoutsBackoff(unittest.TestCase):
-    
-    def test_request_timeout_backoff(self, mocked_request, mock_sleep):
-        """
-            Verify request function is backoff for 5 times on Timeout exceeption
-        """
-        # Initialize MailchimpClient object
-        client = MailchimpClient({'access_token': 'as'})
-        try:
-            client.request('GET', "http://test", "base_url")
-        except requests.exceptions.Timeout:
-            pass
-
-        # Verify that requests.Session.request is called 5 times
-        self.assertEqual(mocked_request.call_count, 5)
-
 @patch("requests.Session.request", side_effect=get_mock_http_response)
 class TestRequestTimeoutsValue(unittest.TestCase):
     

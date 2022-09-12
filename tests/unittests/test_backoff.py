@@ -1,8 +1,7 @@
 from parameterized import parameterized
 import unittest
 from unittest import mock
-import requests
-from tap_mailchimp.client import MailchimpClient, Server5xxError, ConnectionError, MailchimpRateLimitError
+from tap_mailchimp.client import MailchimpClient, Server5xxError, ConnectionError, MailchimpRateLimitError, Timeout
 
 class TestBackoff(unittest.TestCase):
     """
@@ -18,18 +17,34 @@ class TestBackoff(unittest.TestCase):
     url = 'url'
 
     @parameterized.expand([
-            ['429_error_backoff', MailchimpRateLimitError, None],
-            ['Connection_error_backoff', ConnectionError, None],
-            ['Server5xx_error_backoff', Server5xxError, None],
+            ['429_error_backoff', MailchimpRateLimitError, 6],
+            ['Connection_error_backoff', ConnectionError,  6],
+            ['Server5xx_error_backoff', Server5xxError, 6],
+            ['Timeout_backoff', Timeout, 5]
     ])
 
     @mock.patch("time.sleep")
     @mock.patch("requests.Session.request")
-    def test_backoff(self, name, test_exception, data, mocked_request, mocked_sleep):
-        """Test case to verify backoff works as expected"""
+    def test_get_backoff(self, name, test_exception, count, mocked_request, mocked_sleep):
+        """Test case to verify backoff for 'get' works as expected"""
 
         mocked_request.side_effect = test_exception('exception')
         with self.assertRaises(test_exception) as e:
-            response_json = self.mailchimp_client.request(self.method, self.path, self.url)
+            response_json = self.mailchimp_client.get(self.path)
+        self.assertEqual(mocked_request.call_count, count)
 
-        self.assertEqual(mocked_request.call_count, 6)
+    @parameterized.expand([
+            ['429_error_backoff', MailchimpRateLimitError, 6],
+            ['Connection_error_backoff', ConnectionError,  6],
+            ['Server5xx_error_backoff', Server5xxError, 6],
+            ['Timeout_backoff', Timeout, 5]
+    ])
+    @mock.patch("time.sleep")
+    @mock.patch("requests.Session.request")
+    def test_post_backoff(self, name, test_exception, count, mocked_request, mocked_sleep):
+        """Test case to verify backoff for 'post' works as expected"""
+
+        mocked_request.side_effect = test_exception('exception')
+        with self.assertRaises(test_exception) as e:
+            response_json = self.mailchimp_client.post(self.path)
+        self.assertEqual(mocked_request.call_count, count)
