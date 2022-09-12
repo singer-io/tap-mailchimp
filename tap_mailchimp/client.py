@@ -1,9 +1,9 @@
+import functools
 import backoff
 import requests
 import singer
 from requests.exceptions import ConnectionError, Timeout # pylint: disable=redefined-builtin
 from singer import metrics
-import functools
 
 LOGGER = singer.get_logger()
 
@@ -123,13 +123,13 @@ def raise_for_error(response):
 def retry_pattern(fnc):
     """Function for backoff"""
     @backoff.on_exception(backoff.expo,
-                            Timeout, # Backoff for request timeout
-                            max_tries=5,
-                            factor=2)
+                          Timeout, # Backoff for request timeout
+                          max_tries=5,
+                          factor=2)
     @backoff.on_exception(backoff.expo,
-                            (Server5xxError, MailchimpRateLimitError, ConnectionError),
-                            max_tries=6,
-                            factor=3)
+                          (Server5xxError, MailchimpRateLimitError, ConnectionError),
+                          max_tries=6,
+                          factor=3)
     @functools.wraps(fnc)
     def wrapper(*args, **kwargs):
         return fnc(*args, **kwargs)
