@@ -176,7 +176,7 @@
                   "value": {
                     "type": [
                       "null",
-                      "string"
+                      "integer"
                     ]
                   }
                 }
@@ -263,6 +263,12 @@
           "type": [
             "null",
             "boolean"
+          ]
+        },
+        "auto_fb_post": {
+          "type": [
+            "null",
+            "string"
           ]
         },
         "fb_comments": {
@@ -712,7 +718,7 @@
         "constrain_rss_img": {
           "type": [
             "null",
-            "string"
+            "boolean"
           ]
         }
       }

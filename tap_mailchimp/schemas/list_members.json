@@ -100,13 +100,13 @@
             "total_revenue": {
               "type": [
                 "null",
-                "integer"
+                "number"
               ]
             },
             "number_of_orders": {
               "type": [
                 "null",
-                "integer"
+                "number"
               ]
             },
             "currency_code": {
