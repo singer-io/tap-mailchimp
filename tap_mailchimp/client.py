@@ -123,11 +123,7 @@ def raise_for_error(response):
 def retry_pattern(fnc):
     """Function for backoff"""
     @backoff.on_exception(backoff.expo,
-                          Timeout, # Backoff for request timeout
-                          max_tries=5,
-                          factor=2)
-    @backoff.on_exception(backoff.expo,
-                          (Server5xxError, MailchimpRateLimitError, ConnectionError),
+                          (Server5xxError, MailchimpRateLimitError, ConnectionError, Timeout),
                           max_tries=6,
                           factor=3)
     @functools.wraps(fnc)

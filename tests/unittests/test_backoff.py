@@ -20,7 +20,7 @@ class TestBackoff(unittest.TestCase):
             ['429_error_backoff', MailchimpRateLimitError, 6],
             ['Connection_error_backoff', ConnectionError,  6],
             ['Server5xx_error_backoff', Server5xxError, 6],
-            ['Timeout_backoff', Timeout, 5]
+            ['Timeout_backoff', Timeout, 6]
     ])
 
     @mock.patch("time.sleep")
@@ -37,7 +37,7 @@ class TestBackoff(unittest.TestCase):
             ['429_error_backoff', MailchimpRateLimitError, 6],
             ['Connection_error_backoff', ConnectionError,  6],
             ['Server5xx_error_backoff', Server5xxError, 6],
-            ['Timeout_backoff', Timeout, 5]
+            ['Timeout_backoff', Timeout, 6]
     ])
     @mock.patch("time.sleep")
     @mock.patch("requests.Session.request")
