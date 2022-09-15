@@ -196,7 +196,7 @@
     "modules": {
       "type": [
         "null",
-        "string"
+        "array"
       ],
       "items": {
         "type": [
