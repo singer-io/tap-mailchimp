@@ -176,7 +176,7 @@
                   "value": {
                     "type": [
                       "null",
-                      "integer"
+                      "string"
                     ]
                   }
                 }
