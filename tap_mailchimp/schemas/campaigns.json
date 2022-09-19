@@ -268,8 +268,13 @@
         "auto_fb_post": {
           "type": [
             "null",
-            "string"
-          ]
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
         },
         "fb_comments": {
           "type": [
@@ -565,7 +570,7 @@
             "object"
           ],
           "additionalProperties": false,
-          "properties":{
+          "properties": {
             "id": {
               "type": [
                 "null",
@@ -650,7 +655,7 @@
                 "object"
               ],
               "additionalProperties": false,
-              "properties":{
+              "properties": {
                 "sunday": {
                   "type": [
                     "null",
@@ -696,18 +701,18 @@
               }
             },
             "weekly_send_day": {
-                "type": [
-                  "null",
-                  "string"
-                ]
-              },
+              "type": [
+                "null",
+                "string"
+              ]
+            },
             "monthly_send_Date": {
-                "type": [
-                  "null",
-                  "string"
-                ]
-              }
-        }
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
         },
         "last_sent": {
           "type": [
@@ -722,7 +727,6 @@
           ]
         }
       }
-
     },
     "ab_split_opts": {
       "type": [
