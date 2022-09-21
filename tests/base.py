@@ -20,6 +20,7 @@ class MailchimpBaseTest(unittest.TestCase):
     INCREMENTAL = "INCREMENTAL"
     OBEYS_START_DATE = "obey-start-date"
     BOOKMARK_PATH = "bookmark-path"
+    EXTRA_AUTOMATIC_FIELDS = "extra-automatic-fields"
     RECORD_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
     BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S+00:00"
 
@@ -103,11 +104,12 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.BOOKMARK_PATH: None
             },
             'reports_email_activity': {
-                self.PRIMARY_KEYS: {'action', 'campaign_id', 'email_id', 'timestamp'},
+                self.PRIMARY_KEYS: {'_sdc_record_hash'},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {'timestamp'},
                 self.OBEYS_START_DATE: True,
-                self.BOOKMARK_PATH: ['reports_email_activity', '32e6edcecb']
+                self.BOOKMARK_PATH: ['reports_email_activity', '32e6edcecb'],
+                self.EXTRA_AUTOMATIC_FIELDS: {'action', 'campaign_id', 'email_id', 'timestamp', 'ip'}
             },
             'unsubscribes': {
                 self.PRIMARY_KEYS: {'campaign_id', 'email_id'},
@@ -146,7 +148,8 @@ class MailchimpBaseTest(unittest.TestCase):
         """Return a dictionary with the key of table name and set of value of automatic(primary key and bookmark field) fields"""
         auto_fields = {}
         for k, v in self.expected_metadata().items():
-            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) |  v.get(self.REPLICATION_KEYS, set())
+            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) |  v.get(self.REPLICATION_KEYS, set()) | \
+                v.get(self.EXTRA_AUTOMATIC_FIELDS, set())
         return auto_fields
 
     def run_and_verify_check_mode(self, conn_id):

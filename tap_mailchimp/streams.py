@@ -1,3 +1,4 @@
+import hashlib
 import json
 import time
 import random
@@ -60,6 +61,9 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
 
 def transform_activities(records):
     """Function to move activity at the top-level from the email activity records"""
+
+    # Fields to prepare hash
+    fields_to_hash = ['campaign_id', 'action', 'email_id', 'timestamp', 'ip']
     for record in records:
         if 'activity' in record:
             if '_links' in record:
@@ -68,9 +72,20 @@ def transform_activities(records):
             del record_template['activity']
 
             for activity in record['activity']:
+                hash_string = ''
                 new_activity = dict(record_template)
                 for key, value in activity.items():
                     new_activity[key] = value
+
+                # Create hash string
+                for field in fields_to_hash:
+                    hash_string += str(new_activity.get(field, ''))
+
+                hash_string_bytes = hash_string.encode('utf-8')
+                hashed_string = hashlib.sha256(hash_string_bytes).hexdigest()
+                # Create a record for hashed string
+                new_activity['_sdc_record_hash'] = hashed_string
+
                 yield new_activity
 
 
@@ -98,6 +113,7 @@ class BaseStream:
     bookmark_path = None
     bookmark_query_field = None
     report_streams = []
+    extra_automatic_fields = []
 
     def __init__(self, state, client, config, catalog, selected_stream_names, child_streams_to_sync):
         self.state = state
@@ -356,11 +372,14 @@ class ReportEmailActivity(Incremental):
     """Class for 'reports_email_activity' stream"""
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
-    key_properties = ['campaign_id', 'action', 'email_id', 'timestamp']
+    key_properties = ['_sdc_record_hash']
     streams_to_sync = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
     replication_keys = ['timestamp']
+    # We must pass a list of fields for which we want data to the Mailchimp API.
+    # As a result, make these fields as automatic, as they are used to generate the '_sdc record hash' Primary Key.
+    extra_automatic_fields = ['campaign_id', 'action', 'email_id', 'timestamp', 'ip']
 
     def write_activity_batch_bookmark(self, batch_id):
         """Write batch id bookmark"""

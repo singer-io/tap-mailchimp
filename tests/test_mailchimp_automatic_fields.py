@@ -60,10 +60,16 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
 
                 # Verify that only the automatic fields are sent to the target
                 for actual_keys in record_messages_keys:
+                    # Not all records include 'ip'. But for our dataset 'ip' as differentiating field among non-similar records
+                    if stream == "reports_email_activity":
+                        actual_keys -= {"id"}
                     self.assertSetEqual(expected_keys, actual_keys)
-                    
-                # BUG: TDL-20303 PKs are not unique     
+
                 # Verify that all replicated records have unique primary key values.
-                # self.assertEqual(len(primary_keys_list), 
-                #                     len(unique_primary_keys_list), 
-                #                     msg="Replicated record does not have unique primary key values.")
+                # NOTE: 'list_segment_members' included data about members from different segment of the lists. There a
+                # possibility that a user can be a member for multiple segments. Thus, there will be duplication of records.
+                # Reference: https://jira.talendforge.org/browse/TDL-20303
+                if stream != "list_segment_members":
+                    self.assertEqual(len(primary_keys_list),
+                                     len(unique_primary_keys_list),
+                                     msg="Replicated record does not have unique primary key values.")
