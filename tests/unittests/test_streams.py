@@ -136,9 +136,12 @@ class StreamsTest(unittest.TestCase):
             Test case to verify that 'activity' field in records is transformed correctly.
         '''
 
-        transformed_record = streams.transform_activities(records = test_value1)
+        transformed_record = list(streams.transform_activities(records = test_value1))
+        for record in transformed_record:
+            # Remove the hash used for PK generation
+            record.pop("_sdc_record_hash")
 
-        self.assertEqual(list(transformed_record), test_value2)
+        self.assertEqual(transformed_record, test_value2)
 
 
 
