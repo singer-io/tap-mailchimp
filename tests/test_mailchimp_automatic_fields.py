@@ -1,3 +1,4 @@
+import json
 from tap_tester import runner, connections
 from base import MailchimpBaseTest
 
@@ -46,13 +47,17 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
                 
                 # Collect actual values
                 data = synced_records.get(stream, {})
-                record_messages_keys = [set(row['data'].keys())
-                                        for row in data.get('messages', [])]
-                primary_keys_list = [tuple(message.get('data', {}).get(expected_pk) for expected_pk in expected_primary_keys)
-                                       for message in data.get('messages', [])
-                                       if message.get('action') == 'upsert']
+                record_messages_keys = [set(row['data'].keys()) for row in data.get('messages', [])]
+                records = [message.get("data") for message in data.get('messages', []) if message.get('action') == 'upsert']
+
+                # Remove duplicate records
+                # NOTE: 'list_segment_members' included data about members from different segments of the lists. There a
+                # possibility that a user can be a member of multiple segments. Thus, there will be duplication of records.
+                # Reference: https://jira.talendforge.org/browse/TDL-20303
+                primary_keys_list = [tuple(message.get(expected_pk) for expected_pk in expected_primary_keys)
+                                     for message in [json.loads(t) for t in {json.dumps(d) for d in records}]]
                 unique_primary_keys_list = set(primary_keys_list)
-                
+
                 # Verify that you get some records for each stream
                 self.assertGreater(
                     record_count_by_stream.get(stream, -1), 0,
@@ -62,14 +67,11 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
                 for actual_keys in record_messages_keys:
                     # Not all records include 'ip'. But for our dataset 'ip' as differentiating field among non-similar records
                     if stream == "reports_email_activity":
-                        actual_keys -= {"id"}
+                        expected_keys -= {"ip"}
+                        actual_keys -= {"ip"}
                     self.assertSetEqual(expected_keys, actual_keys)
 
                 # Verify that all replicated records have unique primary key values.
-                # NOTE: 'list_segment_members' included data about members from different segment of the lists. There a
-                # possibility that a user can be a member for multiple segments. Thus, there will be duplication of records.
-                # Reference: https://jira.talendforge.org/browse/TDL-20303
-                if stream != "list_segment_members":
-                    self.assertEqual(len(primary_keys_list),
-                                     len(unique_primary_keys_list),
-                                     msg="Replicated record does not have unique primary key values.")
+                self.assertEqual(len(primary_keys_list),
+                                 len(unique_primary_keys_list),
+                                 msg="Replicated record does not have unique primary key values.")
