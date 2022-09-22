@@ -525,93 +525,123 @@
         "wait_time": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "test_size": {
           "type": [
             "null",
-            "string"
+            "integer"
           ]
         },
         "subject_lines": {
           "type": [
             "null",
-            "string"
-          ]
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
         },
         "send_times": {
           "type": [
             "null",
-            "string"
-          ]
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
         },
         "from_names": {
           "type": [
             "null",
-            "string"
-          ]
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
         },
         "reply_to_addresses": {
           "type": [
             "null",
-            "string"
-          ]
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
         },
         "contents": {
           "type": [
             "null",
-            "string"
-          ]
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
         },
         "combinations": {
           "type": [
             "null",
-            "object"
+            "array"
           ],
-          "additionalProperties": false,
-          "properties": {
-            "id": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "subject_line": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "send_time": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "from_name": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "reply_to": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "content_description": {
-              "type": [
-                "null",
-                "string"
-              ]
-            },
-            "recipients": {
-              "type": [
-                "null",
-                "string"
-              ]
+          "items": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "subject_line": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "send_time": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "from_name": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "reply_to": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "content_description": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "recipients": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              }
             }
           }
         }
@@ -646,7 +676,7 @@
             "hour": {
               "type": [
                 "null",
-                "string"
+                "integer"
               ]
             },
             "daily_send": {
@@ -659,43 +689,43 @@
                 "sunday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 },
                 "monday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 },
                 "tuesday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 },
                 "wednesday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 },
                 "thursday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 },
                 "friday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 },
                 "saturday": {
                   "type": [
                     "null",
-                    "string"
+                    "boolean"
                   ]
                 }
               }
@@ -709,7 +739,7 @@
             "monthly_send_Date": {
               "type": [
                 "null",
-                "string"
+                "number"
               ]
             }
           }

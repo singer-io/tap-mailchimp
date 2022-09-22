@@ -308,8 +308,13 @@
             "days":{
               "type":[
                 "null",
-                "string"
-              ]
+                "array"
+              ],
+              "items": {
+                "type": [
+                  "string"
+                ]
+              }
             }
           }
         },

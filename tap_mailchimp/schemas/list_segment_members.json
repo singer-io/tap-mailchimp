@@ -166,6 +166,7 @@
     },
     "last_note": {
       "type": [
+        "null",
         "object"
       ],
       "additionalProperties": false,
