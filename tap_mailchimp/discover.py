@@ -2,6 +2,7 @@ from singer.catalog import Catalog, CatalogEntry, Schema
 from tap_mailchimp.schema import get_schemas
 from tap_mailchimp.streams import STREAMS
 
+
 def discover():
     """Prepare catalog for all the streams"""
     catalog = Catalog([])

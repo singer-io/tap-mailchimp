@@ -10,23 +10,26 @@ from requests.exceptions import HTTPError
 
 LOGGER = singer.get_logger()
 
-MIN_RETRY_INTERVAL = 2 # 2 seconds
-MAX_RETRY_INTERVAL = 300 # 5 minutes
-MAX_RETRY_ELAPSED_TIME = 43200 # 12 hours
+MIN_RETRY_INTERVAL = 2  # 2 seconds
+MAX_RETRY_INTERVAL = 300  # 5 minutes
+MAX_RETRY_ELAPSED_TIME = 43200  # 12 hours
 
 # Break up reports_email_activity batches to iterate over chunks
 EMAIL_ACTIVITY_BATCH_SIZE = 100
 
 DEFAULT_PAGE_SIZE = 1000
 
+
 class BatchExpiredError(Exception):
     pass
+
 
 def next_sleep_interval(previous_sleep_interval):
     """Function to send the time to sleep based on previous sleep interval"""
     min_interval = previous_sleep_interval or MIN_RETRY_INTERVAL
     max_interval = previous_sleep_interval * 2 or MIN_RETRY_INTERVAL
     return min(MAX_RETRY_INTERVAL, random.randint(min_interval, max_interval))
+
 
 def transform_activities(records):
     """Function to move activity at the top-level from the email activity records"""
@@ -43,6 +46,7 @@ def transform_activities(records):
                     new_activity[key] = value
                 yield new_activity
 
+
 def nested_set(dic, path, value):
     """Function to set bookmark of child stream for every parent ids"""
     for key in path[:-1]:
@@ -50,7 +54,10 @@ def nested_set(dic, path, value):
     dic[path[-1]] = value
 
 # pylint: disable=too-many-instance-attributes
+
+
 class BaseStream:
+    """Base class for the Mailchimp streams"""
     stream_name = None
     key_properties = None
     replication_keys = []
@@ -83,6 +90,7 @@ class BaseStream:
 
     @classmethod
     def write_schema(cls, catalog):
+        """Function to write schema for the stream"""
         stream = catalog.get_stream(cls.stream_name)
         schema = stream.schema.to_dict()
         singer.write_schema(cls.stream_name, schema, stream.key_properties)
@@ -144,7 +152,8 @@ class BaseStream:
 
     def sync_substream(self, child, parent_record_id):
         """Function to update the API URL based on parent id and sync child stream"""
-        child_stream_obj = STREAMS.get(child)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
+        child_stream_obj = STREAMS.get(child)(self.state, self.client, self.config, \
+            self.catalog, self.selected_stream_names, self.child_streams_to_sync)
         if child_stream_obj.replication_method == 'INCREMENTAL':
             # Updated the bookmark path with parent id, as the Tap saves bookmark based on parent's id
             child_stream_obj.bookmark_path[1] = parent_record_id
@@ -191,7 +200,7 @@ class BaseStream:
             if len(raw_records) < page_size:
                 has_more = False
 
-            # Loop over every records and sync child stream
+            # Loop over every record and sync child stream
             for record in raw_records:
                 # Remove '_links' as it contains API schema docs
                 del record['_links']
@@ -202,7 +211,7 @@ class BaseStream:
                         # Skip reports child stream sync as it syncs for the list of parent ids
                         if child in self.report_streams:
                             continue
-                        # If the child stream is selected or the grandchild is selected then sync child stream
+                        # If the child stream is selected or the grandchild is selected then sync the child stream
                         if child in self.selected_stream_names or child in self.child_streams_to_sync:
                             self.sync_substream(child, record.get('id'))
 
@@ -215,7 +224,8 @@ class BaseStream:
                 # Skip the sync if the stream is not selected
                 if report_stream not in self.selected_stream_names:
                     continue
-                reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
+                reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, \
+                    self.catalog, self.selected_stream_names, self.child_streams_to_sync)
                 reports_stream_obj.sync_report_activities(ids)
 
             if self.bookmark_query_field:
@@ -223,10 +233,14 @@ class BaseStream:
 
             offset += page_size
 
+
 class FullTable(BaseStream):
+    """Base class for FULL TABLE streams"""
     replication_method = 'FULL_TABLE'
 
+
 class Incremental(BaseStream):
+    """Base class for INCREMENTAL streams"""
     replication_method = 'INCREMENTAL'
 
     def sync(self, sync_start_date=None):
@@ -234,13 +248,17 @@ class Incremental(BaseStream):
         bookmark = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
         super().sync(sync_start_date=bookmark)
 
+
 class Automations(FullTable):
+    """Class for 'automations' stream"""
     stream_name = 'automations'
     data_key = stream_name
     key_properties = ['id']
     path = '/automations'
 
+
 class Lists(FullTable):
+    """Class for 'lists' stream"""
     stream_name = 'lists'
     key_properties = ['id']
     path = '/lists'
@@ -251,7 +269,9 @@ class Lists(FullTable):
     child = ['list_segments', 'list_members']
     data_key = stream_name
 
+
 class ListMembers(Incremental):
+    """Class for 'list_members' stream"""
     stream_name = 'list_members'
     key_properties = ['id', 'list_id']
     path = '/members'
@@ -261,7 +281,9 @@ class ListMembers(Incremental):
     bookmark_query_field = 'since_last_changed'
     replication_keys = ['last_changed']
 
+
 class ListSegments(FullTable):
+    """Class for 'list_segments' stream"""
     stream_name = 'list_segments'
     key_properties = ['id']
     path = '/segments'
@@ -269,14 +291,18 @@ class ListSegments(FullTable):
     data_key = 'segments'
     child = ['list_segment_members']
 
+
 class ListSegmentMembers(FullTable):
+    """Class for 'list_segment_members' stream"""
     stream_name = 'list_segment_members'
     key_properties = ['id']
     path = '/members'
     streams_to_sync = ['lists', 'list_segments']
     data_key = 'members'
 
+
 class Campaigns(FullTable):
+    """Class for 'campaigns' stream"""
     stream_name = 'campaigns'
     key_properties = ['id']
     path = '/campaigns'
@@ -289,14 +315,18 @@ class Campaigns(FullTable):
     report_streams = ['reports_email_activity']
     data_key = stream_name
 
+
 class Unsubscribes(FullTable):
+    """Class for 'unsubscribes' stream"""
     stream_name = 'unsubscribes'
     key_properties = ['campaign_id', 'email_id']
     path = '/reports/{}/unsubscribed'
     streams_to_sync = ['campaigns']
     data_key = stream_name
 
+
 class ReportEmailActivity(Incremental):
+    """Class for 'reports_email_activity' stream"""
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
     key_properties = ['campaign_id', 'action', 'email_id', 'timestamp']
@@ -393,7 +423,7 @@ class ReportEmailActivity(Incremental):
                 return
 
             # Resume from bookmarked job_id, then if completed, issue a new batch for processing.
-            campaigns = [] # Don't need a list of campaigns if resuming
+            campaigns = []  # Don't need a list of campaigns if resuming
             self.sync_email_activities(campaigns, batch_id)
 
     def poll_email_activity(self, batch_id):
@@ -403,7 +433,7 @@ class ReportEmailActivity(Incremental):
         while True:
             data = self.get_batch_info(batch_id)
 
-            ## needs to update frequently for target-stitch to capture state
+            # Needs to update frequently for target-stitch to capture state
             self.write_activity_batch_bookmark(batch_id)
 
             progress = ''
@@ -421,7 +451,8 @@ class ReportEmailActivity(Incremental):
             if data['status'] == 'finished':
                 return data
             elif (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
-                message = 'Mailchimp campaigns export is still in progress after {} seconds. Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
+                message = 'Mailchimp campaigns export is still in progress after {} seconds. \
+                    Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
                 LOGGER.error(message)
                 raise Exception(message)
 
@@ -501,7 +532,7 @@ class ReportEmailActivity(Incremental):
         self.write_activity_batch_bookmark(None)
 
     def sync_report_activities(self, campaign_ids):
-        """Function to loop over chunk of campaigns and sync email activities"""
+        """Function to loop over the chunk of campaigns and sync email activities"""
         # Resume the previous batch, if necessary
         self.check_and_resume_email_activity_batch()
 
@@ -514,6 +545,7 @@ class ReportEmailActivity(Incremental):
 
         # Start from the beginning next time
         self.write_bookmark(['reports_email_activity_next_chunk'], 0)
+
 
 STREAMS = {
     'automations': Automations,

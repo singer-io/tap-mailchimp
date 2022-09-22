@@ -3,11 +3,14 @@ import os
 from singer import metadata
 from tap_mailchimp.streams import STREAMS
 
+
 def get_abs_path(path):
     """Function to get the path of the stream schema file"""
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
+
 def get_schemas():
+    """Function to generate catalog by fetching schema from the """
     schemas = {}
     field_metadata = {}
 
