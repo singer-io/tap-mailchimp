@@ -336,6 +336,8 @@ class ReportEmailActivity(Incremental):
     replication_keys = ['timestamp']
 
     def __init__(self, state, client, config, catalog, selected_stream_names, child_streams_to_sync):
+        """Override the __init__ and set 'chunk_size' class variable to use throughout the class"""
+
         super().__init__(state, client, config, catalog, selected_stream_names, child_streams_to_sync)
 
         try:
