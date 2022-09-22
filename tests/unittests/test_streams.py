@@ -366,7 +366,6 @@ class StreamsTest(unittest.TestCase):
             sorted_campaigns_.append("016cb6c4e7")
 
         _object_.write_email_activity_chunk_bookmark(
-            self.obj,
             current_bookmark=2,
             current_index=1,
             sorted_campaigns=sorted_campaigns_
