@@ -99,9 +99,19 @@ class StreamsTest(unittest.TestCase):
         while len(sorted_campaigns) < 250 :
             sorted_campaigns.append("016cb6c4e7")
 
-        client = MailchimpClient({})
-        stream = streams.ReportEmailActivity({}, client, {}, Catalog('reports_email_activity'), [], [])
-        chunk_campaigns = stream.chunk_campaigns(sorted_campaigns, test_value_1)
+        client = MailchimpClient(config={})
+        stream = streams.ReportEmailActivity(
+            state={},
+            client=client,
+            config={},
+            catalog=Catalog('reports_email_activity'),
+            selected_stream_names=[],
+            child_streams_to_sync=[]
+        )
+        chunk_campaigns = stream.chunk_campaigns(
+            sorted_campaigns=sorted_campaigns,
+            chunk_bookmark=test_value_1
+        )
 
         self.assertEqual(len(list(chunk_campaigns)), test_value_2)
 
@@ -328,8 +338,15 @@ class StreamsTest(unittest.TestCase):
             'reports_email_activity' stream.
         '''
 
-        client = MailchimpClient({})
-        _object_ = streams.ReportEmailActivity({}, client, {}, Catalog('reports_email_activity'), [], [])
+        client = MailchimpClient(config={})
+        _object_ = streams.ReportEmailActivity(
+            state={},
+            client=client,
+            config={},
+            catalog=Catalog('reports_email_activity'),
+            selected_stream_names=[],
+            child_streams_to_sync=[]
+        )
         sorted_campaigns_ = []
 
         while len(sorted_campaigns_) < test_value1 :
