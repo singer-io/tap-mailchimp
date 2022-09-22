@@ -4,7 +4,6 @@ from parameterized import parameterized
 from tap_mailchimp.sync import sync, get_streams_to_sync
 
 
-
 class Schema():
     '''
         Class to provide required attributes for test cases.
@@ -37,16 +36,14 @@ class Catalog:
         self.schema = Schema(stream)
         self.metadata = {}
 
-
     def get_selected_streams(self, state):
         '''
             Returns selected streams.
         '''
         return (Catalog(i) for i in ["automations", "campaigns"])
 
-    def get_stream(self,stream_name):
+    def get_stream(self, stream_name):
         return Stream(stream_name)
-
 
 
 class TestSyncMode(unittest.TestCase):
@@ -58,35 +55,36 @@ class TestSyncMode(unittest.TestCase):
         Stream('list_segments'),
         Stream('automations'),
         Stream('list_segment_members')
-        ]
+    ]
 
     @parameterized.expand([
-        ["no_parent",['lists','automations'],[2,0]],
-        ["single_level_inheritance_parent_not_selected", ['list_segments','automations'],[2,0]],
+        ["no_parent", ['lists', 'automations'], [2, 0]],
+        ["single_level_inheritance_parent_not_selected",
+            ['list_segments', 'automations'], [2, 0]],
         [
             "single_level_inheritance_parent_selected",
-            ['list_segments', 'automations','lists'],
-            [2,0]
+            ['list_segments', 'automations', 'lists'],
+            [2, 0]
         ],
         [
             "multiple_level_inheritance_parent_not_selected",
             ['list_segment_members', 'automations'],
-            [2,1]
+            [2, 1]
         ],
         [
             "multiple_level_inheritance_sub_parent_selected",
             ['list_segment_members', 'automations', 'list_segments'],
-            [2,1]
+            [2, 1]
         ],
         [
             "multiple_level_inheritance_super_parent_selected",
             ['list_segment_members', 'automations', 'lists'],
-            [2,1]
+            [2, 1]
         ],
         [
             "multiple_level_inheritance_all_parents_selected",
             ['list_segment_members', 'automations', 'lists', 'list_segments'],
-            [2,1]
+            [2, 1]
         ]
     ])
     def test_get_streams_to_sync(self, name, test_value1, test_value2):
@@ -99,12 +97,15 @@ class TestSyncMode(unittest.TestCase):
         for stream in test_value1:
             selected_streams.append(Stream(stream))
 
-        catalog = Catalog(self.streams)
-        streams, child = get_streams_to_sync(catalog, selected_streams, test_value1)
+        catalog = Catalog(stream=self.streams)
+        streams, child = get_streams_to_sync(
+            catalog=catalog,
+            selected_streams=selected_streams,
+            selected_stream_names=test_value1
+        )
 
         self.assertEqual(len(streams), test_value2[0])
         self.assertEqual(len(child), test_value2[1])
-
 
     @mock.patch("singer.set_currently_syncing")
     @mock.patch("singer.write_state")
@@ -112,9 +113,9 @@ class TestSyncMode(unittest.TestCase):
     @mock.patch("tap_mailchimp.streams.BaseStream.write_schema")
     @mock.patch("tap_mailchimp.client.MailchimpClient")
     def test_sync(self, mocked_client, mocked_write_stream, mocked_full_table_sync,
-                mocked_write_state, mocked_currently_syncing):
+                  mocked_write_state, mocked_currently_syncing):
 
-        catalog = Catalog(self.streams)
+        catalog = Catalog(stream=self.streams)
         config = {
             'access_token': 'TEST',
             'request_timeout': 300,
@@ -122,7 +123,12 @@ class TestSyncMode(unittest.TestCase):
             'start_date': '2010-01-01T00:00:00Z'
         }
 
-        sync(mocked_client, catalog, {}, config)
+        sync(
+            client=mocked_client,
+            catalog=catalog,
+            state={},
+            config=config
+        )
 
         # The functions singer.write_state and singer.set_currently_syncing are
         # called whenever a stream is synced and also at the end of sync. Here

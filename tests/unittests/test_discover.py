@@ -3,7 +3,6 @@ from singer.catalog import Catalog
 from tap_mailchimp.discover import discover
 
 
-
 class DiscoverTest(unittest.TestCase):
     '''
         Test class to verify proper working of discover mode function.
