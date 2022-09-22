@@ -6,7 +6,6 @@ from tap_mailchimp import streams
 from tap_mailchimp.client import MailchimpClient
 
 
-
 class Mocked():
     '''
         Class to provide required attributes for test cases.
@@ -14,7 +13,6 @@ class Mocked():
     config = {}
     params = {}
     stream_name = 'automations'
-
 
 
 class Schema:
@@ -29,7 +27,6 @@ class Schema:
         return {'stream': self.stream_name}
 
 
-
 class Catalog:
     '''
         Class to provide required attributes for test cases.
@@ -42,7 +39,6 @@ class Catalog:
         return Streams(self.stream_name)
 
 
-
 class Streams:
     '''
         Class to provide required attributes for test cases.
@@ -53,7 +49,8 @@ class Streams:
         self.path = '/test_path'
         self.schema = Schema(stream_name)
         self.key_properties = []
-        self.metadata = [{'breadcrumb': (), 'metadata': {'valid-replication-keys': []}}]
+        self.metadata = [
+            {'breadcrumb': (), 'metadata': {'valid-replication-keys': []}}]
 
 
 class StreamsTest(unittest.TestCase):
@@ -61,10 +58,14 @@ class StreamsTest(unittest.TestCase):
         Test class to verify working of functions in streams.py file.
     '''
 
-    obj = streams.BaseStream(state='test_state', client=MailchimpClient,
-                config={}, catalog=Catalog('automations'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
+    obj = streams.BaseStream(
+        state='test_state',
+        client=MailchimpClient,
+        config={},
+        catalog=Catalog('automations'),
+        selected_stream_names=[Streams('automations')],
+        child_streams_to_sync=None
+    )
 
     @parameterized.expand([
         ['non_zero_value', 3],
@@ -78,10 +79,8 @@ class StreamsTest(unittest.TestCase):
         '''
 
         previous_sleep_interval = test_value_1
-        next_sleep = streams.next_sleep_interval(previous_sleep_interval)
+        next_sleep = streams.next_sleep_interval(previous_sleep_interval=previous_sleep_interval)
         self.assertGreaterEqual(next_sleep, previous_sleep_interval)
-
-
 
     @parameterized.expand([
         ['zero_chunk_bookmark', 0, 3],
@@ -96,7 +95,7 @@ class StreamsTest(unittest.TestCase):
 
         sorted_campaigns = []
 
-        while len(sorted_campaigns) < 250 :
+        while len(sorted_campaigns) < 250:
             sorted_campaigns.append("016cb6c4e7")
 
         client = MailchimpClient(config={})
@@ -115,8 +114,6 @@ class StreamsTest(unittest.TestCase):
 
         self.assertEqual(len(list(chunk_campaigns)), test_value_2)
 
-
-
     @parameterized.expand([
         [
             'non_empty_activity',
@@ -124,7 +121,7 @@ class StreamsTest(unittest.TestCase):
                 'campaign_id': 'test1',
                 'email_id': 'test2',
                 'activity': [{"TEST_key": "TEST_val"}],
-                '_links': [{'test_key' : 'test_val'}]
+                '_links': [{'test_key': 'test_val'}]
             }],
             [{
                 'campaign_id': 'test1',
@@ -138,7 +135,7 @@ class StreamsTest(unittest.TestCase):
                 'campaign_id': 'test2',
                 'email_id': 'test2',
                 'activity': [],
-                '_links': [{'test_key' : 'test_val'}]
+                '_links': [{'test_key': 'test_val'}]
             }],
             []
         ]
@@ -148,11 +145,9 @@ class StreamsTest(unittest.TestCase):
             Test case to verify that 'activity' field in records is transformed correctly.
         '''
 
-        transformed_record = streams.transform_activities(records = test_value1)
+        transformed_record = streams.transform_activities(records=test_value1)
 
         self.assertEqual(list(transformed_record), test_value2)
-
-
 
     def test_nested_set(self):
         '''
@@ -160,16 +155,26 @@ class StreamsTest(unittest.TestCase):
            path should be initialized with the given value.
         '''
 
-        dic = {'test1': "TEST", 'test2' : {'test_key': 'test_val'}, "test3" : "Test"}
-        path = ['test2', 'test_key']
+        dic = {
+            "test1": "TEST",
+            "test2": {
+                "test_key": "test_val"
+            },
+            "test3": "Test"
+        }
+        path = ["test2", "test_key"]
         value = None
-        expected = {'test1': "TEST", 'test2' : {'test_key': None}, "test3" : "Test"}
+        expected = {
+            "test1": "TEST",
+            "test2": {
+                "test_key": None
+            },
+            "test3": "Test"
+        }
 
-        streams.nested_set(dic, path, value)
+        streams.nested_set(dic=dic, path=path, value=value)
 
-        self.assertEqual(dic,expected)
-
-
+        self.assertEqual(dic, expected)
 
     @parameterized.expand([
         ['test_stream_1', 'unsubscribes', '/test_path'],
@@ -181,20 +186,21 @@ class StreamsTest(unittest.TestCase):
             as per the given arguments.
         '''
 
-        obj = streams.BaseStream(state='test_state', client='test_client',
-                config='test_config', catalog=Catalog(stream),
-                selected_stream_names=[Streams(stream)],
-                child_streams_to_sync=None)
+        obj = streams.BaseStream(
+            state='test_state',
+            client='test_client',
+            config='test_config',
+            catalog=Catalog(stream),
+            selected_stream_names=[Streams(stream)],
+            child_streams_to_sync=None
+        )
 
         streams.BaseStream.path = '/TEST'
 
-        actual_path = obj.get_path(parent_id=10133232, child_stream_obj=Streams(stream))
+        actual_path = obj.get_path(
+            parent_id=10133232, child_stream_obj=Streams(stream))
 
         self.assertEqual(actual_path, expected_path)
-
-
-
-
 
     @mock.patch("singer.messages.write_message")
     def test_write_schema(self, mocked_message):
@@ -202,16 +208,18 @@ class StreamsTest(unittest.TestCase):
             Test case to verify that schema is written for given stream.
         '''
 
-        obj = streams.BaseStream(state='test_state', client='test_client',
-                config='test_config', catalog=Catalog('automations'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
+        obj = streams.BaseStream(
+            state='test_state',
+            client='test_client',
+            config='test_config',
+            catalog=Catalog('automations'),
+            selected_stream_names=[Streams('automations')],
+            child_streams_to_sync=None
+        )
 
-        obj.write_schema(Catalog('automations'))
+        obj.write_schema(catalog=Catalog('automations'))
 
         self.assertTrue(mocked_message.called)
-
-
 
     @parameterized.expand([
         ['initial_bookmark_less_than_record_bookmark', '2001-05-02', '2008-02-10'],
@@ -224,25 +232,26 @@ class StreamsTest(unittest.TestCase):
             returned depending upon the initial bookmark and the records.
         '''
 
-        obj = streams.BaseStream(state='test_state', client='test_client',
-                config='test_config', catalog=Catalog('automations'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
+        obj = streams.BaseStream(
+            state='test_state',
+            client='test_client',
+            config='test_config',
+            catalog=Catalog('automations'),
+            selected_stream_names=[Streams('automations')],
+            child_streams_to_sync=None
+        )
 
         streams.BaseStream.replication_keys = ['last_changed']
         test_record = [
-            {'last_changed' : '2008-02-01'},
-            {'last_changed' : '2008-02-10'},
-            {'last_changed' : '2008-02-02'}
-            ]
+            {'last_changed': '2008-02-01'},
+            {'last_changed': '2008-02-10'},
+            {'last_changed': '2008-02-02'}
+        ]
 
-        actual_bookmark = obj.process_records(records = test_record,
-                            max_bookmark_field= initial_bookmark)
+        actual_bookmark = obj.process_records(
+            records=test_record, max_bookmark_field=initial_bookmark)
 
         self.assertEqual(actual_bookmark, expected_bookmark)
-
-
-
 
     @parameterized.expand([
         ['returning_default', ['lists'], '2001-01-01'],
@@ -256,16 +265,18 @@ class StreamsTest(unittest.TestCase):
 
         test_state = {'bookmarks': {'datetime': '2015-03-06T16:03:01+00:00'}}
 
-        obj = streams.BaseStream(state=test_state, client='test_client',
-                config='test_config', catalog=Catalog('automations'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
+        obj = streams.BaseStream(
+            state=test_state,
+            client='test_client',
+            config='test_config',
+            catalog=Catalog('automations'),
+            selected_stream_names=[Streams('automations')],
+            child_streams_to_sync=None
+        )
 
-        actual_bookmark = obj.get_bookmark(path , default = '2001-01-01')
+        actual_bookmark = obj.get_bookmark(path=path, default='2001-01-01')
 
         self.assertEqual(actual_bookmark, expected_bookmark)
-
-
 
     @mock.patch("singer.messages.write_message")
     def test_write_bookmark(self, mocked_write_message):
@@ -273,12 +284,16 @@ class StreamsTest(unittest.TestCase):
             Test case to verify that the bookmark is written.
         '''
 
-        self.obj.state = {'test1': "TEST", 'test2' : {'test_key': 'test_val'}, "test3" : "Test"}
-        self.obj.write_bookmark(['test2', 'test_key'],None)
+        self.obj.state = {
+            "test1": "TEST",
+            "test2": {
+                "test_key": "test_val"
+            },
+            "test3": "Test"
+        }
+        self.obj.write_bookmark(path=["test2", "test_key"], value=None)
 
         self.assertTrue(mocked_write_message.called)
-
-
 
     @mock.patch("tap_mailchimp.streams.Incremental.sync")
     @mock.patch("tap_mailchimp.streams.BaseStream.get_path")
@@ -287,10 +302,8 @@ class StreamsTest(unittest.TestCase):
             Test case to verify that the child stream (sub_stream) is synced.
         '''
 
-        self.obj.sync_substream('list_members', 10133232)
+        self.obj.sync_substream(child='list_members', parent_record_id=10133232)
         self.assertTrue(mocked_sync.called)
-
-
 
     @mock.patch("tap_mailchimp.streams.BaseStream.sync")
     @mock.patch("tap_mailchimp.streams.BaseStream.get_bookmark")
@@ -299,18 +312,20 @@ class StreamsTest(unittest.TestCase):
             Test case to verify the working of sync function for incremental stream.
         '''
 
-        sync_object = streams.Incremental(state='test_state', client=MailchimpClient,
-                config={}, catalog=Catalog('list_members'),
-                selected_stream_names=[Streams('list_members')],
-                child_streams_to_sync=None)
+        sync_object = streams.Incremental(
+            state='test_state',
+            client=MailchimpClient,
+            config={},
+            catalog=Catalog('list_members'),
+            selected_stream_names=[Streams('list_members')],
+            child_streams_to_sync=None
+        )
 
         mocked_get_bookmark.return_value = '2001-01-01'
 
         sync_object.sync()
 
         self.assertTrue(mocked_basestream_sync.called)
-
-
 
     @mock.patch("tap_mailchimp.streams.BaseStream.write_bookmark")
     def test_write_activity_batch_bookmark(self, mocked_write_bookmark):
@@ -324,8 +339,6 @@ class StreamsTest(unittest.TestCase):
         _object_.write_activity_batch_bookmark(self.obj, batch_id='8vh837xfqd')
 
         self.assertTrue(mocked_write_bookmark.called)
-
-
 
     @parameterized.expand([
         ['test1', 500],
@@ -349,14 +362,17 @@ class StreamsTest(unittest.TestCase):
         )
         sorted_campaigns_ = []
 
-        while len(sorted_campaigns_) < test_value1 :
+        while len(sorted_campaigns_) < test_value1:
             sorted_campaigns_.append("016cb6c4e7")
 
-        _object_.write_email_activity_chunk_bookmark(current_bookmark=2, current_index=1, sorted_campaigns=sorted_campaigns_)
+        _object_.write_email_activity_chunk_bookmark(
+            self.obj,
+            current_bookmark=2,
+            current_index=1,
+            sorted_campaigns=sorted_campaigns_
+        )
 
         self.assertTrue(mocked_write_bookmark.called)
-
-
 
     @mock.patch("tap_mailchimp.client.MailchimpClient.get")
     def test_get_batch_info(self, mocked_client_get):
@@ -366,29 +382,35 @@ class StreamsTest(unittest.TestCase):
         '''
 
         _object_ = streams.ReportEmailActivity
-        mocked_client_get.side_effect = HTTPError('test_url',
-            'test_code', 'test_msg', 'test_hdrs', 'test_fp')
+        mocked_client_get.side_effect = HTTPError(
+            url='test_url',
+            code='test_code',
+            msg='test_msg',
+            hdrs='test_hdrs',
+            fp='test_fp'
+        )
 
         with self.assertRaises(HTTPError) as e:
             _object_.get_batch_info(self.obj, batch_id='8vh837xfqd')
 
         self.assertEqual(str(e.exception), 'HTTP Error test_code: test_msg')
 
-
-
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.sync_email_activities")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.get_batch_info")
     @mock.patch("tap_mailchimp.streams.BaseStream.get_bookmark")
     @mock.patch("tap_mailchimp.streams.LOGGER.info")
     def test_check_and_resume_email_activity_batch(self, mocked_logger, mocked_get_bookmark,
-                                        mocked_get_batch_info, mocked_sync_email_activities):
+                                                   mocked_get_batch_info, mocked_sync_email_activities):
         '''
             Test case to verify that a batch is checked and resumed depending upon the bookmark.
         '''
 
         _object_ = streams.ReportEmailActivity
         mocked_get_bookmark.return_value = '8vh837xfqd'
-        mocked_get_batch_info.return_value = {'status' : 'finished', 'response_body_url':None}
+        mocked_get_batch_info.return_value = {
+            'status': 'finished',
+            'response_body_url': None
+        }
 
         _object_.check_and_resume_email_activity_batch(_object_)
 
@@ -396,36 +418,49 @@ class StreamsTest(unittest.TestCase):
             'reports_email_activity - Previous run from state (%s) is empty, retrying.',
             '8vh837xfqd')
 
-
-
-
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.write_activity_batch_bookmark")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.get_batch_info")
     @mock.patch("tap_mailchimp.streams.LOGGER")
-    def test_poll_email_activity(self, mocked_logger,
-            mocked_get_batch_info, mocked_write_activity_batch_bookmark):
+    def test_poll_email_activity(self, mocked_logger, mocked_get_batch_info, mocked_write_activity_batch_bookmark):
         '''
             Test case to verify that all required operations are executed for each batch
             and the progress is calculated accordingly.
         '''
 
-        _object_ = streams.ReportEmailActivity(state='test_state', client=MailchimpClient,
-                config={}, catalog=Catalog('reports_email_activity'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
+        _object_ = streams.ReportEmailActivity(
+            state='test_state',
+            client=MailchimpClient,
+            config={},
+            catalog=Catalog('reports_email_activity'),
+            selected_stream_names=[Streams('automations')],
+            child_streams_to_sync=None
+        )
 
         mocked_get_batch_info.side_effect = [
-            {'id': 'test', 'status':'pending' ,'total_operations' : 2, 'finished_operations':1},
-            {'id': 'test', 'status':'finished' ,'total_operations' : 2, 'finished_operations':2}]
+            {
+                'id': 'test',
+                'status': 'pending',
+                'total_operations': 2,
+                'finished_operations': 1
+            },
+            {
+                'id': 'test',
+                'status': 'finished',
+                'total_operations': 2,
+                'finished_operations': 2
+            }
+        ]
 
-        expected_data = {'id': 'test', 'status':'finished',
-                        'total_operations' : 2, 'finished_operations':2}
+        expected_data = {
+            'id': 'test',
+            'status': 'finished',
+            'total_operations': 2,
+            'finished_operations': 2
+        }
 
-        actual_data = _object_.poll_email_activity( batch_id='8vh837xfqd')
+        actual_data = _object_.poll_email_activity(batch_id='8vh837xfqd')
 
         self.assertEqual(actual_data, expected_data)
-
-
 
     @parameterized.expand([
         ['no_batch_id', None, 2],
@@ -437,55 +472,59 @@ class StreamsTest(unittest.TestCase):
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.poll_email_activity")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.stream_email_activity")
     def test_sync_email_activities(self, name, test_value_1, test_value_2,
-            mocked_stream_email_activity, mocked_poll_email_activity,
-            mocked_write_activity_batch_bookmark,
-            mocked_post, mocked_format_selected_fields):
+                                   mocked_stream_email_activity, mocked_poll_email_activity,
+                                   mocked_write_activity_batch_bookmark,
+                                   mocked_post, mocked_format_selected_fields):
         '''
             Test case to verify that all batches of campaigns for 'reports_email_activity' stream
             are synced and bookmark is written for the same.
         '''
 
-        _object_ = streams.ReportEmailActivity(state='test_state', client=MailchimpClient,
-                config={}, catalog=Catalog('reports_email_activity'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
+        _object_ = streams.ReportEmailActivity(
+            state='test_state',
+            client=MailchimpClient,
+            config={},
+            catalog=Catalog('reports_email_activity'),
+            selected_stream_names=[Streams('automations')],
+            child_streams_to_sync=None
+        )
 
         campaign_ids = ["016cb6c4e7", "016ab6c4e7", "096cb6c4e7"]
-        mocked_post.return_value = {'id' : '8vh837xfqd'}
+        mocked_post.return_value = {'id': '8vh837xfqd'}
         mocked_poll_email_activity.return_value = {
-            'completed_at' : '2012-12-12',
+            'completed_at': '2012-12-12',
             'submitted_at': '2012-12-12',
-            'response_body_url':'test'
-            }
+            'response_body_url': 'test'
+        }
 
         _object_.sync_email_activities(campaign_ids, batch_id=test_value_1)
 
-        self.assertEqual(mocked_write_activity_batch_bookmark.call_count, test_value_2)
-
-
+        self.assertEqual(
+            mocked_write_activity_batch_bookmark.call_count, test_value_2)
 
     @mock.patch("tap_mailchimp.streams.BaseStream.write_bookmark")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.sync_email_activities")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.write_email_activity_chunk_bookmark")
     def test_sync_report_activities(self, mocked_write_email_activity_chunk_bookmark,
-                                mocked_sync_email_activities, mocked_write_bookmark):
+                                    mocked_sync_email_activities, mocked_write_bookmark):
         '''
             Test case to verify that 'reports_email_activity' stream is synced.
         '''
 
-        _object_ = streams.ReportEmailActivity(state='test_state', client=MailchimpClient,
-                config={}, catalog=Catalog('reports_email_activity'),
-                selected_stream_names=[Streams('automations')],
-                child_streams_to_sync=None)
-
+        _object_ = streams.ReportEmailActivity(
+            state='test_state',
+            client=MailchimpClient,
+            config={},
+            catalog=Catalog('reports_email_activity'),
+            selected_stream_names=[Streams('automations')],
+            child_streams_to_sync=None
+        )
 
         campaign_ids = ["016cb6c4e7", "016ab6c4e7", "096cb6c4e7"]
 
-        _object_.sync_report_activities(campaign_ids)
+        _object_.sync_report_activities(campaign_ids=campaign_ids)
 
         self.assertTrue(mocked_write_bookmark.called)
-
-
 
     @mock.patch("tap_mailchimp.streams.LOGGER.info")
     @mock.patch("singer.write_record")
@@ -496,17 +535,21 @@ class StreamsTest(unittest.TestCase):
     @mock.patch("tap_mailchimp.streams.BaseStream.sync_substream")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.sync_report_activities")
     def test_sync(self, mocked_sync_report_activities, mocked_sync_substream,
-                    mocked_write_bookmark, mocked_format_selected_fields, mocked_client_get,
-                    mocked_process_records, mocked_write_record, mocked_logger):
+                  mocked_write_bookmark, mocked_format_selected_fields, mocked_client_get,
+                  mocked_process_records, mocked_write_record, mocked_logger):
         '''
             Test case to verify working of sync function.
         '''
 
-        mocked_client_get.return_value = {'test' : [{
-            'campaigns': [],
-            'total_items': 0, '_links': []
-            }]
-            }
+        mocked_client_get.return_value = {
+            'test': [
+                {
+                    'campaigns': [],
+                    'total_items': 0,
+                    '_links': []
+                }
+            ]
+        }
         mocked_format_selected_fields.return_value = '_links,campaigns._links,campaigns.\
             field1,campaigns.field2,constraints,total_items'
 
@@ -518,7 +561,7 @@ class StreamsTest(unittest.TestCase):
         _object.report_streams = ['reports_email_activity', 'test_stream']
         _object.to_write_records = True
 
-        self.obj.sync(None)
+        self.obj.sync(sync_start_date=None)
 
         self.assertTrue(mocked_write_bookmark.called)
         self.assertTrue(mocked_sync_substream.called)
