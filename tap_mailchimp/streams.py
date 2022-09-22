@@ -59,36 +59,6 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
 
-def transform_activities(records):
-    """Function to move activity at the top-level from the email activity records"""
-
-    # Fields to prepare hash
-    fields_to_hash = ['campaign_id', 'action', 'email_id', 'timestamp', 'ip']
-    for record in records:
-        if 'activity' in record:
-            if '_links' in record:
-                del record['_links']
-            record_template = dict(record)
-            del record_template['activity']
-
-            for activity in record['activity']:
-                hash_string = ''
-                new_activity = dict(record_template)
-                for key, value in activity.items():
-                    new_activity[key] = value
-
-                # Create hash string
-                for field in fields_to_hash:
-                    hash_string += str(new_activity.get(field, ''))
-
-                hash_string_bytes = hash_string.encode('utf-8')
-                hashed_string = hashlib.sha256(hash_string_bytes).hexdigest()
-                # Create a record for hashed string
-                new_activity['_sdc_record_hash'] = hashed_string
-
-                yield new_activity
-
-
 def nested_set(dic, path, value):
     """Function to set bookmark of child stream for every parent ids"""
     for key in path[:-1]:
@@ -381,6 +351,33 @@ class ReportEmailActivity(Incremental):
     # As a result, make these fields as automatic, as they are used to generate the '_sdc record hash' Primary Key.
     extra_automatic_fields = ['campaign_id', 'action', 'email_id', 'timestamp', 'ip']
 
+    def transform_activities(self, records):
+        """Function to move activity at the top-level from the email activity records"""
+
+        for record in records:
+            if 'activity' in record:
+                if '_links' in record:
+                    del record['_links']
+                record_template = dict(record)
+                del record_template['activity']
+
+                for activity in record['activity']:
+                    hash_string = ''
+                    new_activity = dict(record_template)
+                    for key, value in activity.items():
+                        new_activity[key] = value
+
+                    # Create hash string
+                    for field in self.extra_automatic_fields:
+                        hash_string += str(new_activity.get(field, ''))
+
+                    hash_string_bytes = hash_string.encode('utf-8')
+                    hashed_string = hashlib.sha256(hash_string_bytes).hexdigest()
+                    # Create a record for hashed string
+                    new_activity['_sdc_record_hash'] = hashed_string
+
+                    yield new_activity
+
     def write_activity_batch_bookmark(self, batch_id):
         """Write batch id bookmark"""
         self.write_bookmark(['reports_email_activity_last_run_id'], batch_id)
@@ -483,7 +480,7 @@ class ReportEmailActivity(Incremental):
                                 response = json.loads(operation['response'])
                                 email_activities = response['emails']
 
-                                max_bookmark_field = self.process_records(transform_activities(email_activities), last_bookmark)
+                                max_bookmark_field = self.process_records(self.transform_activities(email_activities), last_bookmark)
                                 self.write_bookmark([self.stream_name, campaign_id], max_bookmark_field)
                     file = tar.next()
         return failed_campaign_ids

@@ -1,5 +1,7 @@
 import unittest
-from tap_mailchimp.streams import transform_activities
+from tap_mailchimp.streams import ReportEmailActivity
+from tap_mailchimp.client import MailchimpClient
+from test_sync import Catalog
 
 class TestReportsEmailActivitiesPrimaryKey(unittest.TestCase):
     """Test case to verify we generate '_sdc_record_hash' for reports_email_activity"""
@@ -24,8 +26,21 @@ class TestReportsEmailActivitiesPrimaryKey(unittest.TestCase):
             }
         ]
 
+        # Mailchimp client
+        client = MailchimpClient(config={})
+
+        # 'reports_email_activity' stream object
+        stream = ReportEmailActivity(
+            state={},
+            client=client,
+            config={},
+            catalog=Catalog("reports_email_activity"),
+            selected_stream_names=["reports_email_activity"],
+            child_streams_to_sync=[]
+        )
+
         # Function call
-        transformed_records = list(transform_activities(records))
+        transformed_records = list(stream.transform_activities(records=records))
 
         # Verify we got transformed records
         self.assertIsNotNone(transformed_records)
