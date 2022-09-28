@@ -348,7 +348,7 @@ class ReportEmailActivity(Incremental):
     data_key = 'emails'
     replication_keys = ['timestamp']
     # We must pass a list of fields for which we want data to the Mailchimp API.
-    # As a result, make these fields as automatic, as they are used to generate the '_sdc record hash' Primary Key.
+    # As a result, make these fields automatic, as they are used to generate the '_sdc record hash' Primary Key.
     extra_automatic_fields = ['campaign_id', 'action', 'email_id', 'timestamp', 'ip']
 
     def transform_activities(self, records):
@@ -367,9 +367,9 @@ class ReportEmailActivity(Incremental):
                     for key, value in activity.items():
                         new_activity[key] = value
 
-                    # Create hash string
+                    # Create hash string of key-value ie. key1value1key2value2...
                     for field in self.extra_automatic_fields:
-                        hash_string += str(new_activity.get(field, ''))
+                        hash_string += field + str(new_activity.get(field, ''))
 
                     hash_string_bytes = hash_string.encode('utf-8')
                     hashed_string = hashlib.sha256(hash_string_bytes).hexdigest()
