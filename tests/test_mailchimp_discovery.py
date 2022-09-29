@@ -2,10 +2,12 @@ import re
 from base import MailchimpBaseTest
 from tap_tester import menagerie, connections
 
+
 class MailchimpDiscover(MailchimpBaseTest):
     """Test tap discover mode and metadata conforms to standards."""
 
     def name(self):
+        """Returns name of the test"""
         return "tap_tester_mailchimp_discover_test"
 
     def test_run(self):
@@ -29,40 +31,47 @@ class MailchimpDiscover(MailchimpBaseTest):
         conn_id = connections.ensure_connection(self, payload_hook=None)
 
         # Verify that there are catalogs found
-        found_catalogs = self.run_and_verify_check_mode(
-            conn_id)
+        found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # Verify stream names follow the naming convention
         # Streams should only have lowercase alphas and underscores
-        found_catalog_names = {c['tap_stream_id'] for c in found_catalogs}
-        self.assertTrue(all([re.fullmatch(r"[a-z_]+",  name) for name in found_catalog_names]),
-                        msg="One or more streams don't follow standard naming")
-        
+        found_catalog_names = {c["tap_stream_id"] for c in found_catalogs}
+        self.assertTrue(
+            all([re.fullmatch(r"[a-z_]+", name) for name in found_catalog_names]),
+            msg="One or more streams don't follow standard naming",
+        )
+
         for stream in streams_to_test:
             with self.subTest(stream=stream):
 
                 # Verify the catalog is found for a given stream
-                catalog = next(iter([catalog for catalog in found_catalogs
-                                     if catalog["stream_name"] == stream]))
+                catalog = next(
+                    iter(
+                        [
+                            catalog
+                            for catalog in found_catalogs
+                            if catalog["stream_name"] == stream
+                        ]
+                    )
+                )
                 self.assertIsNotNone(catalog)
 
                 # Collecting expected values
                 expected_primary_keys = self.expected_primary_keys()[stream]
-                expected_replication_keys = self.expected_replication_keys()[
-                    stream]
+                expected_replication_keys = self.expected_replication_keys()[stream]
                 expected_automatic_fields = self.expected_automatic_fields().get(stream)
-                expected_replication_method = self.expected_replication_method()[
-                    stream]
+                expected_replication_method = self.expected_replication_method()[stream]
 
                 # Collecting actual values...
                 schema_and_metadata = menagerie.get_annotated_schema(
-                    conn_id, catalog['stream_id'])
+                    conn_id, catalog["stream_id"]
+                )
                 metadata = schema_and_metadata["metadata"]
-                
+
                 # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # stream_properties = [
                 #     item for item in metadata if item.get("breadcrumb") == []]
-                
+
                 # actual_primary_keys = set(
                 #     stream_properties[0].get(
                 #         "metadata", {self.PRIMARY_KEYS: []}).get(self.PRIMARY_KEYS, [])
@@ -73,17 +82,17 @@ class MailchimpDiscover(MailchimpBaseTest):
                 # )
                 # actual_replication_method = stream_properties[0].get(
                 #     "metadata", {self.REPLICATION_METHOD: None}).get(self.REPLICATION_METHOD)
-                
-                
+
                 actual_automatic_fields = set(
-                    item.get("breadcrumb", ["properties", None])[1] for item in metadata
+                    item.get("breadcrumb", ["properties", None])[1]
+                    for item in metadata
                     if item.get("metadata").get("inclusion") == "automatic"
                 )
-                
+
                 actual_fields = []
                 for md_entry in metadata:
-                    if md_entry['breadcrumb'] != []:
-                        actual_fields.append(md_entry['breadcrumb'][1])
+                    if md_entry["breadcrumb"] != []:
+                        actual_fields.append(md_entry["breadcrumb"][1])
 
                 ##########################################################################
                 # metadata assertions
@@ -96,28 +105,36 @@ class MailchimpDiscover(MailchimpBaseTest):
                 #                 "\nstream_properties | {}".format(stream_properties))
 
                 # Verify there are no duplicate metadata entries
-                self.assertEqual(len(actual_fields), len(set(actual_fields)), msg = f"duplicates in the fields retrieved")
+                self.assertEqual(
+                    len(actual_fields),
+                    len(set(actual_fields)),
+                    msg=f"duplicates in the fields retrieved",
+                )
 
                 # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # Verify the primary key(s) match expectations
                 # self.assertSetEqual(
                 #     expected_primary_keys, actual_primary_keys,
                 # )
-                
+
                 # Verify that primary keys and replication keys
                 # are given the inclusion of automatic in metadata.
-                self.assertSetEqual(expected_automatic_fields,
-                                    actual_automatic_fields)
+                self.assertSetEqual(expected_automatic_fields, actual_automatic_fields)
 
                 # Verify that all other fields have an inclusion of available metadata
                 # This assumes there are no unsupported fields for SaaS sources
                 self.assertTrue(
-                    all({item.get("metadata").get("inclusion") == "available"
-                         for item in metadata
-                         if item.get("breadcrumb", []) != []
-                         and item.get("breadcrumb", ["properties", None])[1]
-                         not in actual_automatic_fields}),
-                    msg="Not all non key properties are set to available in metadata")
+                    all(
+                        {
+                            item.get("metadata").get("inclusion") == "available"
+                            for item in metadata
+                            if item.get("breadcrumb", []) != []
+                            and item.get("breadcrumb", ["properties", None])[1]
+                            not in actual_automatic_fields
+                        }
+                    ),
+                    msg="Not all non key properties are set to available in metadata",
+                )
 
                 # BUG: TDL-20301 EMPTY BREADCRUMB IS NOT GENERATED
                 # Verify that if there is a replication key we are doing INCREMENTAL otherwise FULL
