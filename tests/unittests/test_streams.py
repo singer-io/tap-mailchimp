@@ -1,6 +1,6 @@
 import unittest
 from unittest import mock
-from urllib.error import HTTPError
+from requests.exceptions import HTTPError
 from parameterized import parameterized
 from tap_mailchimp import streams
 from tap_mailchimp.client import MailchimpClient
@@ -38,6 +38,9 @@ class Catalog:
     def get_stream(self, stream_name):
         return Streams(self.stream_name)
 
+    def to_dict(self):
+        return {"field": "value"}
+
 
 class Streams:
     '''
@@ -51,6 +54,15 @@ class Streams:
         self.key_properties = []
         self.metadata = [
             {'breadcrumb': (), 'metadata': {'valid-replication-keys': []}}]
+
+
+class MockResponse:
+    '''
+        Class for Response object
+    '''
+
+    def __init__(self, status_code):
+        self.status_code = status_code
 
 
 class StreamsTest(unittest.TestCase):
@@ -79,7 +91,8 @@ class StreamsTest(unittest.TestCase):
         '''
 
         previous_sleep_interval = test_value_1
-        next_sleep = streams.next_sleep_interval(previous_sleep_interval=previous_sleep_interval)
+        next_sleep = streams.next_sleep_interval(
+            previous_sleep_interval=previous_sleep_interval)
         self.assertGreaterEqual(next_sleep, previous_sleep_interval)
 
     @parameterized.expand([
@@ -255,7 +268,8 @@ class StreamsTest(unittest.TestCase):
 
     @parameterized.expand([
         ['returning_default', ['lists'], '2001-01-01'],
-        ['not_returning_default', [], {'datetime': '2015-03-06T16:03:01+00:00'}]
+        ['not_returning_default', [], {
+            'datetime': '2015-03-06T16:03:01+00:00'}]
     ])
     def test_get_bookmark(self, name, path, expected_bookmark):
         '''
@@ -302,7 +316,8 @@ class StreamsTest(unittest.TestCase):
             Test case to verify that the child stream (sub_stream) is synced.
         '''
 
-        self.obj.sync_substream(child='list_members', parent_record_id=10133232)
+        self.obj.sync_substream(child='list_members',
+                                parent_record_id=10133232)
         self.assertTrue(mocked_sync.called)
 
     @mock.patch("tap_mailchimp.streams.BaseStream.sync")
@@ -382,17 +397,28 @@ class StreamsTest(unittest.TestCase):
 
         _object_ = streams.ReportEmailActivity
         mocked_client_get.side_effect = HTTPError(
-            url='test_url',
-            code='test_code',
-            msg='test_msg',
-            hdrs='test_hdrs',
-            fp='test_fp'
-        )
+            "HTTP Error: Not authorized.", response=MockResponse(401))
 
         with self.assertRaises(HTTPError) as e:
             _object_.get_batch_info(self.obj, batch_id='8vh837xfqd')
 
-        self.assertEqual(str(e.exception), 'HTTP Error test_code: test_msg')
+        self.assertEqual(str(e.exception), 'HTTP Error: Not authorized.')
+
+    @mock.patch("tap_mailchimp.client.MailchimpClient.get")
+    def test_get_batch_info_batch_expire_error(self, mocked_client_get):
+        '''
+            Test case to verify that the 'BatchExpiredError' error is raised when we encounter a 404 error.
+        '''
+
+        _object_ = streams.ReportEmailActivity
+
+        mocked_client_get.side_effect = HTTPError(
+            "HTTP Error: Not Found.", response=MockResponse(404))
+
+        with self.assertRaises(streams.BatchExpiredError) as e:
+            _object_.get_batch_info(self.obj, batch_id='8vh837xfqd')
+
+        self.assertEqual(str(e.exception), 'Batch 8vh837xfqd expired')
 
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.sync_email_activities")
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.get_batch_info")
@@ -415,6 +441,26 @@ class StreamsTest(unittest.TestCase):
 
         mocked_logger.assert_called_with(
             'reports_email_activity - Previous run from state (%s) is empty, retrying.',
+            '8vh837xfqd')
+
+    @mock.patch("tap_mailchimp.streams.ReportEmailActivity.sync_email_activities")
+    @mock.patch("tap_mailchimp.streams.ReportEmailActivity.get_batch_info")
+    @mock.patch("tap_mailchimp.streams.BaseStream.get_bookmark")
+    @mock.patch("tap_mailchimp.streams.LOGGER.info")
+    def test_check_and_resume_email_activity_batch_batchexpired_error(self, mocked_logger, mocked_get_bookmark,
+                                                                      mocked_get_batch_info, mocked_sync_email_activities):
+        '''
+            Test case to verify that a batch is checked and resumed depending upon the bookmark.
+        '''
+
+        _object_ = streams.ReportEmailActivity
+        mocked_get_bookmark.return_value = '8vh837xfqd'
+        mocked_get_batch_info.side_effect = streams.BatchExpiredError('Batch 8vh837xfqd expired')
+
+        _object_.check_and_resume_email_activity_batch(_object_)
+
+        mocked_logger.assert_called_with(
+            'reports_email_activity - Previous run from state expired: %s',
             '8vh837xfqd')
 
     @mock.patch("tap_mailchimp.streams.ReportEmailActivity.write_activity_batch_bookmark")
@@ -553,7 +599,8 @@ class StreamsTest(unittest.TestCase):
             field1,campaigns.field2,constraints,total_items'
 
         _object = self.obj
-        _object.selected_stream_names = ['campaigns', 'reports_email_activity', 'unsubscribes']
+        _object.selected_stream_names = [
+            'campaigns', 'reports_email_activity', 'unsubscribes']
         _object.child = ['reports_email_activity', 'unsubscribes']
         _object.data_key = 'test'
         _object.bookmark_query_field = True

@@ -14,7 +14,7 @@ MIN_RETRY_INTERVAL = 2  # 2 seconds
 MAX_RETRY_INTERVAL = 300  # 5 minutes
 MAX_RETRY_ELAPSED_TIME = 43200  # 12 hours
 
-# Break up reports_email_activity batches to iterate over chunks
+# Break up reports_email_activity into batches to iterate over chunks
 EMAIL_ACTIVITY_BATCH_SIZE = 100
 
 DEFAULT_PAGE_SIZE = 1000
@@ -85,7 +85,9 @@ class BaseStream:
     def get_path(self, parent_id, child_stream_obj):
         """Function to return the API URL path based on the parent ids"""
         if child_stream_obj.stream_name in ['unsubscribes', 'reports_email_activity']:
+            # Return the child path with parent id
             return child_stream_obj.path.format(parent_id)
+        # Return path with parent path, parent id and child path
         return self.path + '/' + str(parent_id) + child_stream_obj.path
 
     @classmethod
@@ -122,6 +124,7 @@ class BaseStream:
         return dic
 
     def write_bookmark(self, path, value):
+        """Function to write bookmark at a specified bookmark path"""
         nested_set(self.state, ['bookmarks'] + path, value)
         singer.write_state(self.state)
 
@@ -169,13 +172,14 @@ class BaseStream:
         page_size = int(self.config.get('page_size', DEFAULT_PAGE_SIZE))
         offset = 0
         has_more = True
+        params = {
+            'count': page_size,
+            **self.params
+        }
         while has_more:
-            params = {
-                'count': page_size,
-                'offset': offset,
-                **self.params
-            }
+            params['offset'] = offset
 
+            # Add param for querying records after a particular date based on the 'bookmark_query_field'
             if self.bookmark_query_field:
                 params[self.bookmark_query_field] = last_datetime
 

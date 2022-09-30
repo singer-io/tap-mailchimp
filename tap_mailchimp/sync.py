@@ -30,8 +30,6 @@ def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
     return streams_to_sync, child_streams_to_sync
 
 # Function for sync mode
-
-
 def sync(client, catalog, state, config):
     """Function to sync records for all the selected streams"""
 

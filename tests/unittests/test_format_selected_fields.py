@@ -1,18 +1,18 @@
 import singer
 from tap_mailchimp.client import MailchimpClient
-from tap_mailchimp.streams import Automations
+from tap_mailchimp.streams import ReportEmailActivity
 import unittest
 
 
 class TestFormatSelectedFields(unittest.TestCase):
 
     def test_format_selected_fields(self):
-        expected = 'automations.field1,automations.field2,_links,total_items,constraints,automations._links'
+        expected = 'emails.field1,emails.field2,_links,total_items,constraints,emails._links,emails.activity'
         catalog = singer.Catalog.from_dict(
             {
                 "streams": [
                     {
-                        "tap_stream_id": "automations",
+                        "tap_stream_id": "reports_email_activity",
                         "schema": {
                             "properties": {
                                 "field1": {},
@@ -63,7 +63,7 @@ class TestFormatSelectedFields(unittest.TestCase):
         )
 
         client = MailchimpClient({})
-        stream = Automations(
+        stream = ReportEmailActivity(
             state={},
             client=client,
             config={},

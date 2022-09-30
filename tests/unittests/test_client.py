@@ -6,7 +6,7 @@ from tap_mailchimp.client import MailchimpClient
 
 class Mocked():
     '''
-        Class to provide required attributes for test cases.
+        Mock class to provide required attributes for test cases.
     '''
 
     status_code = 200
