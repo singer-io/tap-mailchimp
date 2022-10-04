@@ -99,7 +99,7 @@ class BaseStream:
     data_key = None
     extra_fields = None
     child = []
-    streams_to_sync = []
+    parent_streams = []
     bookmark_path = None
     bookmark_query_field = None
     report_streams = []
@@ -311,7 +311,7 @@ class ListMembers(Incremental):
     stream_name = 'list_members'
     key_properties = ['id', 'list_id']
     path = '/members'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'members'
     bookmark_path = ['lists', '', stream_name, 'datetime']
     bookmark_query_field = 'since_last_changed'
@@ -323,7 +323,7 @@ class ListSegments(FullTable):
     stream_name = 'list_segments'
     key_properties = ['id']
     path = '/segments'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'segments'
     child = ['list_segment_members']
 
@@ -333,7 +333,7 @@ class ListSegmentMembers(FullTable):
     stream_name = 'list_segment_members'
     key_properties = ['id']
     path = '/members'
-    streams_to_sync = ['lists', 'list_segments']
+    parent_streams = ['lists', 'list_segments']
     data_key = 'members'
 
 
@@ -357,7 +357,7 @@ class Unsubscribes(FullTable):
     stream_name = 'unsubscribes'
     key_properties = ['campaign_id', 'email_id']
     path = '/reports/{}/unsubscribed'
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     data_key = stream_name
 
 
@@ -366,7 +366,7 @@ class ReportEmailActivity(Incremental):
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
     key_properties = ['campaign_id', 'action', 'email_id', 'timestamp']
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
     replication_keys = ['timestamp']

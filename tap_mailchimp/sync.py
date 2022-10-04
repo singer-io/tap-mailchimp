@@ -12,7 +12,7 @@ def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
     child_streams_to_sync = []
     for stream in selected_streams:
         # Get parent stream
-        parent_streams = STREAMS.get(stream.tap_stream_id).streams_to_sync
+        parent_streams = STREAMS.get(stream.tap_stream_id).parent_streams
         if parent_streams:
             # If the parent stream is not selected then add the stream to sync if it is not already present
             if parent_streams[0] not in selected_stream_names:
