@@ -310,6 +310,7 @@
       "properties": {
         "note_id": {
           "type": [
+            "null",
             "integer"
           ]
         },
