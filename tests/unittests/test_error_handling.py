@@ -1,3 +1,4 @@
+from tap_mailchimp import do_discover
 from parameterized import parameterized
 import unittest
 from unittest import mock
@@ -18,8 +19,8 @@ class TestCustomErrorHandling(unittest.TestCase):
     """
 
     config = {
-                "access_token": "test_access_token",
-            }
+        "access_token": "test_access_token",
+    }
 
     mailchimp_client = client.MailchimpClient(config)
     method = 'GET'
@@ -56,8 +57,8 @@ class TestResponseErrorHandling(unittest.TestCase):
     """Test cases to verify the error from the API are displayed as expected"""
 
     config = {
-                "access_token": "test_access_token",
-            }
+        "access_token": "test_access_token",
+    }
 
     mailchimp_client = client.MailchimpClient(config)
     method = 'GET'
@@ -95,8 +96,8 @@ class TestJsonDecodeError(unittest.TestCase):
     """Test Case to Verify JSON Decode Error"""
 
     config = {
-                "access_token": "test_access_token",
-            }
+        "access_token": "test_access_token",
+    }
 
     mailchimp_client = client.MailchimpClient(config)
     method = 'GET'
@@ -117,5 +118,20 @@ class TestJsonDecodeError(unittest.TestCase):
 
         with self.assertRaises(client.MailchimpBadRequestError) as e:
             self.mailchimp_client.request(self.method, self.path, self.url)
+
+        self.assertEqual(str(e.exception), expected_message)
+
+    @mock.patch("requests.Session.request")
+    def test_authentication_in_discover_mode(self,mocked_request):
+        """
+        Appropriate error message should be raised in discover_mode if invalid credentials are passed.
+        """
+        mocked_request.return_value = get_mock_http_response(
+            400, '{"detail":}')
+
+        expected_message = "Error testing Mailchimp authentication. Error: MailchimpBadRequestError: HTTP-error-code: 400, Error: Mailchimp Client faced a bad request."
+
+        with self.assertRaises(Exception) as e:
+            do_discover(self.mailchimp_client)
 
         self.assertEqual(str(e.exception), expected_message)

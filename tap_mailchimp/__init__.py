@@ -21,8 +21,9 @@ def do_discover(client):
     LOGGER.info('Testing authentication')
     try:
         client.get('/lists', params={'count': 1})
-    except:
-        raise Exception('Error testing Mailchimp authentication')
+    except Exception as e:
+        msg  = 'Error testing Mailchimp authentication. Error: {}: {}'.format(e.__class__.__name__, str(e))
+        raise Exception(msg) from None
 
     LOGGER.info('Starting discover')
     catalog = discover()
