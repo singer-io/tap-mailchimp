@@ -71,13 +71,16 @@ class MailchimpBookMark(MailchimpBaseTest):
             "bookmarks": {
                 "lists": {
                     "8c775a04fb": {  # Verifying bookmark for single list's 'list_members'
-                        "list_members": {"datetime": "2022-08-01T06:23:35+00:00"}
+                        "list_members": {"datetime": "2022-08-01T06:23:35.000000Z"}
                     }
                 },
                 "reports_email_activity_next_chunk": 0,
                 "reports_email_activity_last_run_id": None,
                 "reports_email_activity": {  # Verifying bookmark for single campaign's 'reports_email_activity'
-                    "32e6edcecb": "2016-05-15T18:57:16+00:00"
+                    "32e6edcecb": "2016-05-15T18:57:16.000000Z"
+                },
+                "unsubscribes": { # Verifying bookmark for single campaign's 'unsubscribers'
+                    "5b483c58de": {"timestamp": "2014-10-23T23:37:21.000000Z"}
                 },
             }
         }
