@@ -33,7 +33,7 @@ class MailchimpStartDate(MailchimpBaseTest):
 
     def run_test(self, expected_streams):
         self.start_date_1 = self.get_properties().get("start_date")
-        self.start_date_2 = "2014-07-01T00:00:00Z"
+        self.start_date_2 = "2014-10-23T00:00:00Z"
         self.start_date = self.start_date_1
 
         ##########################################################################
