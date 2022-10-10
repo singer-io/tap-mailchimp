@@ -10,16 +10,6 @@ class MailchimpBookMark(MailchimpBaseTest):
     def name(self):
         return "tap_tester_mailchimp_bookmark_test"
 
-    def get_bookmark(self, bookmark, path):
-        """Return the bookmark at the specified path from the state file"""
-        if not path:
-            return None
-
-        if len(path) == 1:
-            return bookmark.get(path[0])
-
-        return self.get_bookmark(bookmark.get(path[0]), path[1:])
-
     def test_run(self):
         """
         Verify that for each stream you can do a sync that records bookmarks.

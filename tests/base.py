@@ -26,6 +26,7 @@ class MailchimpBaseTest(unittest.TestCase):
     BOOKMARK_PATH = "bookmark-path"
     RECORD_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
     BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S+00:00"
+    PARENT = "parent-stream"
 
     def tap_name(self):
         """The name of the tap"""
@@ -74,18 +75,21 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
+                self.PARENT: None
             },
             "campaigns": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
+                self.PARENT: None
             },
             "lists": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
+                self.PARENT: None
             },
             "list_members": {
                 self.PRIMARY_KEYS: {"id", "list_id"},
@@ -93,18 +97,21 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.REPLICATION_KEYS: {"last_changed"},
                 self.OBEYS_START_DATE: True,
                 self.BOOKMARK_PATH: ["lists", "8c775a04fb", "list_members", "datetime"],
+                self.PARENT: "lists"
             },
             "list_segments": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
+                self.PARENT: "lists"
             },
             "list_segment_members": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
+                self.PARENT: None
             },
             "reports_email_activity": {
                 self.PRIMARY_KEYS: {"action", "campaign_id", "email_id", "timestamp"},
@@ -112,12 +119,14 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.REPLICATION_KEYS: {"timestamp"},
                 self.OBEYS_START_DATE: True,
                 self.BOOKMARK_PATH: ["reports_email_activity", "32e6edcecb"],
+                self.PARENT: "campaigns"
             },
             "unsubscribes": {
                 self.PRIMARY_KEYS: {"campaign_id", "email_id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
+                self.PARENT: "campaigns"
             },
         }
 
@@ -151,6 +160,13 @@ class MailchimpBaseTest(unittest.TestCase):
         """Return bookmark path (the path at which bookmark is stored) for the stream"""
         return {
             table: properties.get(self.BOOKMARK_PATH, set())
+            for table, properties in self.expected_metadata().items()
+        }
+
+    def get_parent(self):
+        """Return the parent stream for the stream"""
+        return {
+            table: properties.get(self.PARENT, set())
             for table, properties in self.expected_metadata().items()
         }
 
@@ -315,3 +331,13 @@ class MailchimpBaseTest(unittest.TestCase):
         """
         date_stripped = dt.strptime(date_value, format)
         return date_stripped
+
+    def get_bookmark(self, bookmark, path):
+        """Return the bookmark at the specified path from the state file"""
+        if not path:
+            return None
+
+        if len(path) == 1:
+            return bookmark.get(path[0])
+
+        return self.get_bookmark(bookmark.get(path[0], {}), path[1:])
