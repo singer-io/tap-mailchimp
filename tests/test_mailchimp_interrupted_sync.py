@@ -65,7 +65,7 @@ class MailchimpInterruptedSyncTest(MailchimpBaseTest):
                 "lists": {
                     "8c775a04fb": {
                         "list_members": {
-                            "datetime": "2022-08-11T06:24:35+00:00"
+                            "datetime": "2022-08-11T06:24:35.000000Z"
                         }
                     }
                 }
