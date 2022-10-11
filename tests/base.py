@@ -22,6 +22,7 @@ class MailchimpBaseTest(unittest.TestCase):
     OBEYS_START_DATE = "obey-start-date"
     BOOKMARK_PATH = "bookmark-path"
     BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
+    PARENT = "parent-stream"
 
     def tap_name(self):
         """The name of the tap"""
