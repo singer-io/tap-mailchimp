@@ -151,7 +151,7 @@ class MailchimpStartDate(MailchimpBaseTest):
 
                         self.assertGreaterEqual(
                             self.parse_date(
-                                replication_date, self.RECORD_DATETIME_FORMAT
+                                replication_date, self.BOOKMARK_DATETIME_FORMAT
                             ),
                             self.parse_date(self.start_date_1, self.START_DATE_FORMAT),
                             msg="Report pertains to a date prior to our start date.\n"
@@ -164,7 +164,7 @@ class MailchimpStartDate(MailchimpBaseTest):
 
                         self.assertGreaterEqual(
                             self.parse_date(
-                                replication_date, self.RECORD_DATETIME_FORMAT
+                                replication_date, self.BOOKMARK_DATETIME_FORMAT
                             ),
                             self.parse_date(self.start_date_2, self.START_DATE_FORMAT),
                             msg="Report pertains to a date prior to our start date.\n"
