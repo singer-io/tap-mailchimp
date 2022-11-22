@@ -13,6 +13,7 @@ LOGGER = singer.get_logger()
 MIN_RETRY_INTERVAL = 2  # 2 seconds
 MAX_RETRY_INTERVAL = 300  # 5 minutes
 MAX_RETRY_ELAPSED_TIME = 43200  # 12 hours
+DATE_WINDOW_SIZE = 30 # 30 days
 
 # Break up reports_email_activity into batches to iterate over chunks
 EMAIL_ACTIVITY_BATCH_SIZE = 100
