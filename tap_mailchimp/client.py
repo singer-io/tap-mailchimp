@@ -11,7 +11,9 @@ class ClientRateLimitError(Exception):
     pass
 
 class Server5xxError(Exception):
-    pass
+    def __init__(self, status_code=500):
+        self.status_code = status_code
+        super().__init__()
 
 class MailchimpClient:
     def __init__(self, config):
@@ -88,7 +90,7 @@ class MailchimpClient:
             timer.tags[metrics.Tag.http_status_code] = response.status_code
 
         if response.status_code >= 500:
-            raise Server5xxError()
+            raise Server5xxError(status_code=response.status_code)
 
         if response.status_code == 429:
             raise ClientRateLimitError()

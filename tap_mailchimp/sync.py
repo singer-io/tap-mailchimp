@@ -1,4 +1,3 @@
-
 import singer
 from tap_mailchimp.streams import STREAMS
 
