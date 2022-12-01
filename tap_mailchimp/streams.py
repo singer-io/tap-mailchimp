@@ -389,10 +389,10 @@ class ReportEmailActivity(Incremental):
         """Function to get batch status"""
         try:
             return self.client.get('/batches/{}'.format(batch_id), endpoint='get_batch_info')
-        except HTTPError as e:
-            if e.response.status_code == 404:
+        except HTTPError as exc:
+            if exc.response.status_code == 404:
                 raise BatchExpiredError('Batch {} expired'.format(batch_id))
-            raise e
+            raise exc
 
     def check_and_resume_email_activity_batch(self):
         """Function to resume batch syncing from previous sync"""
@@ -438,7 +438,7 @@ class ReportEmailActivity(Incremental):
 
             if data['status'] == 'finished':
                 return data
-            elif (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
+            if (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
                 message = 'Mailchimp campaigns export is still in progress after {} seconds. \
                     Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
                 LOGGER.error(message)
