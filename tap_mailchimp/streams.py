@@ -1,5 +1,4 @@
 import json
-import os
 import time
 import random
 import tarfile
@@ -11,25 +10,30 @@ from requests.exceptions import HTTPError
 
 LOGGER = singer.get_logger()
 
-MIN_RETRY_INTERVAL = 2 # 2 seconds
-MAX_RETRY_INTERVAL = 300 # 5 minutes
-MAX_RETRY_ELAPSED_TIME = 43200 # 12 hours
+MIN_RETRY_INTERVAL = 2  # 2 seconds
+MAX_RETRY_INTERVAL = 300  # 5 minutes
+MAX_RETRY_ELAPSED_TIME = 43200  # 12 hours
 
-# Break up reports_email_activity batches to iterate over chunks
+# Break up reports_email_activity into batches to iterate over chunks
 EMAIL_ACTIVITY_BATCH_SIZE = 100
+
+DEFAULT_PAGE_SIZE = 1000
+
 
 class BatchExpiredError(Exception):
     pass
 
+
 def next_sleep_interval(previous_sleep_interval):
+    """Function to send the time to sleep based on previous sleep interval"""
     min_interval = previous_sleep_interval or MIN_RETRY_INTERVAL
     max_interval = previous_sleep_interval * 2 or MIN_RETRY_INTERVAL
     return min(MAX_RETRY_INTERVAL, random.randint(min_interval, max_interval))
 
-def get_abs_path(path):
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 def chunk_campaigns(sorted_campaigns, chunk_bookmark):
+    """Function to break list for sorted campaigns into the batch size and send the chunked list"""
+    # Get the chunk start and chunk end based on 'chunk_bookmark' and the batch size
     chunk_start = chunk_bookmark * EMAIL_ACTIVITY_BATCH_SIZE
     chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
 
@@ -41,6 +45,7 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
 
     done = False
     while not done:
+        # Get the list of campaigns based on the chunk start and chunk end
         current_chunk = sorted_campaigns[chunk_start:chunk_end]
         done = len(current_chunk) == 0
         if not done:
@@ -50,11 +55,16 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
                         sorted_campaigns[end_index - 1],
                         chunk_start,
                         end_index - 1)
+            # Send the chunk of campaigns
             yield current_chunk
+
+        # Update the chunk start and chunk end for next chunk
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
+
 def transform_activities(records):
+    """Function to move activity at the top-level from the email activity records"""
     for record in records:
         if 'activity' in record:
             if '_links' in record:
@@ -68,13 +78,18 @@ def transform_activities(records):
                     new_activity[key] = value
                 yield new_activity
 
+
 def nested_set(dic, path, value):
+    """Function to set bookmark of child stream for every parent ids"""
     for key in path[:-1]:
         dic = dic.setdefault(key, {})
     dic[path[-1]] = value
 
 # pylint: disable=too-many-instance-attributes
+
+
 class BaseStream:
+    """Base class for the Mailchimp streams"""
     stream_name = None
     key_properties = None
     replication_keys = []
@@ -84,7 +99,7 @@ class BaseStream:
     data_key = None
     extra_fields = None
     child = []
-    streams_to_sync = []
+    parent_streams = []
     bookmark_path = None
     bookmark_query_field = None
     report_streams = []
@@ -100,48 +115,22 @@ class BaseStream:
         self.child_streams_to_sync = child_streams_to_sync
 
     def get_path(self, parent_id, child_stream_obj):
+        """Function to return the API URL path based on the parent ids"""
         if child_stream_obj.stream_name in ['unsubscribes', 'reports_email_activity']:
+            # Return the child path with parent id
             return child_stream_obj.path.format(parent_id)
+        # Return path with parent path, parent id and child path
         return self.path + '/' + str(parent_id) + child_stream_obj.path
 
     @classmethod
     def write_schema(cls, catalog):
+        """Function to write schema for the stream"""
         stream = catalog.get_stream(cls.stream_name)
         schema = stream.schema.to_dict()
         singer.write_schema(cls.stream_name, schema, stream.key_properties)
 
-    @classmethod
-    def get_schema(cls):
-        schemas = {}
-        field_metadata = {}
-        schema_path = get_abs_path('schemas/{}.json'.format(cls.stream_name))
-
-        with open(schema_path) as file:
-            schema = json.load(file)
-        schemas[cls.stream_name] = schema
-
-        # Documentation:
-        #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#singer-python-helper-functions
-        # Reference:
-        #   https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
-        mdata = metadata.get_standard_metadata(
-            schema=schema,
-            key_properties=cls.key_properties,
-            valid_replication_keys=cls.replication_keys,
-            replication_method=cls.replication_method
-        )
-
-        mdata_map = metadata.to_map(mdata)
-        # update inclusion of "replication keys" as "automatic"
-        if cls.replication_keys:
-            for replication_key in cls.replication_keys:
-                mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
-
-        field_metadata[cls.stream_name] = metadata.to_list(mdata_map)
-
-        return schemas, field_metadata
-
     def process_records(self, records, max_bookmark_field=None):
+        """Function to transform and write records and get the maximum bookmark value"""
         stream = self.stream
         schema = stream.schema.to_dict()
         stream_metadata = metadata.to_map(stream.metadata)
@@ -157,6 +146,7 @@ class BaseStream:
             return max_bookmark_field
 
     def get_bookmark(self, path, default):
+        """Function to get the bookmark at a particular path from the state"""
         dic = self.state
         for key in ['bookmarks'] + path:
             if key in dic:
@@ -166,6 +156,7 @@ class BaseStream:
         return dic
 
     def write_bookmark(self, path, value):
+        """Function to write bookmark at a specified bookmark path"""
         nested_set(self.state, ['bookmarks'] + path, value)
         singer.write_state(self.state)
 
@@ -195,84 +186,42 @@ class BaseStream:
         return ",".join(formatted_field_names)
 
     def sync_substream(self, child, parent_record_id):
-        child_stream_obj = STREAMS.get(child)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
+        """Function to update the API URL based on parent id and sync child stream"""
+        child_stream_obj = STREAMS.get(child)(self.state, self.client, self.config, \
+            self.catalog, self.selected_stream_names, self.child_streams_to_sync)
         if child_stream_obj.replication_method == 'INCREMENTAL':
+            # Updated the bookmark path with parent id, as the Tap saves bookmark based on parent's id
             child_stream_obj.bookmark_path[1] = parent_record_id
         child_stream_obj.path = self.get_path(parent_record_id, child_stream_obj)
         child_stream_obj.sync()
 
-class FullTable(BaseStream):
-    replication_method = 'FULL_TABLE'
-
-    def sync(self):
-
-        ids = []
-        page_size = int(self.config.get('page_size', '1000'))
-        offset = 0
-        has_more = True
-        while has_more:
-            params = {
-                'count': page_size,
-                'offset': offset,
-                **self.params
-            }
-
-            LOGGER.info('%s - Syncing - count: %s, offset: %s', self.stream_name, page_size, offset)
-
-            formatted_selected_fields = self.format_selected_fields()
-
-            params['fields'] = formatted_selected_fields
-            data = self.client.get(
-                self.path,
-                params=params,
-                endpoint=self.stream_name)
-
-            raw_records = data.get(self.data_key)
-
-            if len(raw_records) < page_size:
-                has_more = False
-
-            for record in raw_records:
-                del record['_links']
-                ids.append(record.get('id'))
-                if self.child:
-                    for child in self.child:
-                        if child in self.report_streams:
-                            continue
-                        if child in self.selected_stream_names or child in self.child_streams_to_sync:
-                            self.sync_substream(child, record.get('id'))
-            if self.to_write_records:
-                self.process_records(raw_records)
-
-            for report_stream in self.report_streams:
-                if report_stream not in self.selected_stream_names:
-                    continue
-                reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
-                reports_stream_obj.sync_report_activities(ids)
-
-            offset += page_size
-
-class Incremental(BaseStream):
-    replication_method = 'INCREMENTAL'
-
-    def sync(self):
-        last_datetime = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
+    def sync(self, sync_start_date=None):
+        """Function to sync records and call child stream for every records"""
+        last_datetime = sync_start_date
         max_bookmark_field = last_datetime
-        ids = []
 
-        page_size = int(self.config.get('page_size', '1000'))
+        ids = []
+        page_size = int(self.config.get('page_size', DEFAULT_PAGE_SIZE))
         offset = 0
         has_more = True
+        params = {
+            'count': page_size,
+            **self.params
+        }
         while has_more:
-            params = {
-                'count': page_size,
-                'offset': offset,
-                **self.params
-            }
+            params['offset'] = offset
 
-            params[self.bookmark_query_field] = last_datetime
+            # Add param for querying records after a particular date based on the 'bookmark_query_field'
+            if self.bookmark_query_field:
+                params[self.bookmark_query_field] = last_datetime
 
-            LOGGER.info('%s - Syncing - %scount: %s, offset: %s', self.stream_name, 'since: {}, '.format(last_datetime), page_size, offset)
+            LOGGER.info(
+                '%s - Syncing - %scount: %s, offset: %s',
+                self.stream_name,
+                'since: {}, '.format(last_datetime) if self.bookmark_query_field else '',
+                page_size,
+                offset
+            )
 
             formatted_selected_fields = self.format_selected_fields()
 
@@ -287,35 +236,65 @@ class Incremental(BaseStream):
             if len(raw_records) < page_size:
                 has_more = False
 
+            # Loop over every record and sync child stream
             for record in raw_records:
+                # Remove '_links' as it contains API schema docs
                 del record['_links']
+                # Store 'ids' for reports streams
                 ids.append(record.get('id'))
                 if self.child:
                     for child in self.child:
+                        # Skip reports child stream sync as it syncs for the list of parent ids
                         if child in self.report_streams:
                             continue
+                        # If the child stream is selected or the grandchild is selected then sync the child stream
                         if child in self.selected_stream_names or child in self.child_streams_to_sync:
                             self.sync_substream(child, record.get('id'))
+
+            # If the stream is selected then write records
             if self.to_write_records:
                 max_bookmark_field = self.process_records(raw_records, max_bookmark_field)
 
+            # Sync 'reports' stream based on 'ids' collected for every record
             for report_stream in self.report_streams:
+                # Skip the sync if the stream is not selected
                 if report_stream not in self.selected_stream_names:
                     continue
-                reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, self.catalog, self.selected_stream_names, self.child_streams_to_sync)
+                reports_stream_obj = STREAMS.get(report_stream)(self.state, self.client, self.config, \
+                    self.catalog, self.selected_stream_names, self.child_streams_to_sync)
                 reports_stream_obj.sync_report_activities(ids)
 
-            self.write_bookmark(self.bookmark_path, max_bookmark_field)
+            if self.bookmark_query_field:
+                self.write_bookmark(self.bookmark_path, max_bookmark_field)
 
             offset += page_size
 
+
+class FullTable(BaseStream):
+    """Base class for FULL TABLE streams"""
+    replication_method = 'FULL_TABLE'
+
+
+class Incremental(BaseStream):
+    """Base class for INCREMENTAL streams"""
+    replication_method = 'INCREMENTAL'
+
+    def sync(self, sync_start_date=None):
+        """Run sync with 'last_datetime' param"""
+        bookmark = self.get_bookmark(self.bookmark_path, self.config.get('start_date'))
+        super().sync(sync_start_date=bookmark)
+
+
 class Automations(FullTable):
+    """Class for 'automations' stream"""
     stream_name = 'automations'
     data_key = stream_name
     key_properties = ['id']
     path = '/automations'
 
+
 class Lists(FullTable):
+    """Class for 'lists' stream"""
     stream_name = 'lists'
     key_properties = ['id']
     path = '/lists'
@@ -326,32 +305,40 @@ class Lists(FullTable):
     child = ['list_segments', 'list_members']
     data_key = stream_name
 
+
 class ListMembers(Incremental):
+    """Class for 'list_members' stream"""
     stream_name = 'list_members'
     key_properties = ['id', 'list_id']
     path = '/members'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'members'
     bookmark_path = ['lists', '', stream_name, 'datetime']
     bookmark_query_field = 'since_last_changed'
     replication_keys = ['last_changed']
 
+
 class ListSegments(FullTable):
+    """Class for 'list_segments' stream"""
     stream_name = 'list_segments'
     key_properties = ['id']
     path = '/segments'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'segments'
     child = ['list_segment_members']
 
+
 class ListSegmentMembers(FullTable):
+    """Class for 'list_segment_members' stream"""
     stream_name = 'list_segment_members'
     key_properties = ['id']
     path = '/members'
-    streams_to_sync = ['lists', 'list_segments']
+    parent_streams = ['lists', 'list_segments']
     data_key = 'members'
 
+
 class Campaigns(FullTable):
+    """Class for 'campaigns' stream"""
     stream_name = 'campaigns'
     key_properties = ['id']
     path = '/campaigns'
@@ -364,26 +351,32 @@ class Campaigns(FullTable):
     report_streams = ['reports_email_activity']
     data_key = stream_name
 
+
 class Unsubscribes(FullTable):
+    """Class for 'unsubscribes' stream"""
     stream_name = 'unsubscribes'
     key_properties = ['campaign_id', 'email_id']
     path = '/reports/{}/unsubscribed'
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     data_key = stream_name
 
+
 class ReportEmailActivity(Incremental):
+    """Class for 'reports_email_activity' stream"""
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
     key_properties = ['campaign_id', 'action', 'email_id', 'timestamp']
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
     replication_keys = ['timestamp']
 
     def write_activity_batch_bookmark(self, batch_id):
+        """Write batch id bookmark"""
         self.write_bookmark(['reports_email_activity_last_run_id'], batch_id)
 
     def write_email_activity_chunk_bookmark(self, current_bookmark, current_index, sorted_campaigns):
+        """Write chunk bookmark for email activities"""
         # Bookmark the next chunk because the current chunk will be saved in batch_id
         # Index is relative to current bookmark
         next_chunk = current_bookmark + current_index + 1
@@ -393,14 +386,16 @@ class ReportEmailActivity(Incremental):
             self.write_bookmark(['reports_email_activity_next_chunk'], 0)
 
     def get_batch_info(self, batch_id):
+        """Function to get batch status"""
         try:
             return self.client.get('/batches/{}'.format(batch_id), endpoint='get_batch_info')
-        except HTTPError as e:
-            if e.response.status_code == 404:
+        except HTTPError as exc:
+            if exc.response.status_code == 404:
                 raise BatchExpiredError('Batch {} expired'.format(batch_id))
-            raise e
+            raise exc
 
     def check_and_resume_email_activity_batch(self):
+        """Function to resume batch syncing from previous sync"""
         batch_id = self.get_bookmark(['reports_email_activity_last_run_id'], None)
 
         if batch_id:
@@ -416,16 +411,17 @@ class ReportEmailActivity(Incremental):
                 return
 
             # Resume from bookmarked job_id, then if completed, issue a new batch for processing.
-            campaigns = [] # Don't need a list of campaigns if resuming
+            campaigns = []  # Don't need a list of campaigns if resuming
             self.sync_email_activities(campaigns, batch_id)
 
     def poll_email_activity(self, batch_id):
+        """Get the email activity URL after the batch as executed"""
         sleep = 0
         start_time = time.time()
         while True:
             data = self.get_batch_info(batch_id)
 
-            ## needs to update frequently for target-stitch to capture state
+            # Needs to update frequently for target-stitch to capture state
             self.write_activity_batch_bookmark(batch_id)
 
             progress = ''
@@ -442,8 +438,9 @@ class ReportEmailActivity(Incremental):
 
             if data['status'] == 'finished':
                 return data
-            elif (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
-                message = 'Mailchimp campaigns export is still in progress after {} seconds. Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
+            if (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
+                message = 'Mailchimp campaigns export is still in progress after {} seconds. \
+                    Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
                 LOGGER.error(message)
                 raise Exception(message)
 
@@ -454,6 +451,7 @@ class ReportEmailActivity(Incremental):
             time.sleep(sleep)
 
     def stream_email_activity(self, archive_url):
+        """Get the Email Activities from the provided URL after batch completion"""
 
         failed_campaign_ids = []
 
@@ -468,6 +466,7 @@ class ReportEmailActivity(Incremental):
                             campaign_id = operation['operation_id']
                             last_bookmark = self.state.get('bookmarks', {}).get(self.stream_name, {}).get(campaign_id)
                             LOGGER.info("reports_email_activity - [batch operation %s] Processing records for campaign %s", i, campaign_id)
+                            # If we did not get successful records for a campaign, then log the failed campaign ids
                             if operation['status_code'] != 200:
                                 failed_campaign_ids.append(campaign_id)
                             else:
@@ -480,6 +479,7 @@ class ReportEmailActivity(Incremental):
         return failed_campaign_ids
 
     def sync_email_activities(self, campaign_ids, batch_id=None):
+        """Sync email activities ie. create the batch, get response URL and fetch data from the response URL"""
         if batch_id:
             LOGGER.info('reports_email_activity - Picking up previous run: %s', batch_id)
         else:
@@ -520,6 +520,7 @@ class ReportEmailActivity(Incremental):
         self.write_activity_batch_bookmark(None)
 
     def sync_report_activities(self, campaign_ids):
+        """Function to loop over the chunk of campaigns and sync email activities"""
         # Resume the previous batch, if necessary
         self.check_and_resume_email_activity_batch()
 
@@ -532,6 +533,7 @@ class ReportEmailActivity(Incremental):
 
         # Start from the beginning next time
         self.write_bookmark(['reports_email_activity_next_chunk'], 0)
+
 
 STREAMS = {
     'automations': Automations,

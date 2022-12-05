@@ -3,6 +3,7 @@ from tap_mailchimp.streams import STREAMS
 
 LOGGER = singer.get_logger()
 
+
 def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
     """Return streams to sync"""
     # List of top-level stream names to sync
@@ -11,7 +12,7 @@ def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
     child_streams_to_sync = []
     for stream in selected_streams:
         # Get parent stream
-        parent_streams = STREAMS.get(stream.tap_stream_id).streams_to_sync
+        parent_streams = STREAMS.get(stream.tap_stream_id).parent_streams
         if parent_streams:
             # If the parent stream is not selected then add the stream to sync if it is not already present
             if parent_streams[0] not in selected_stream_names:
@@ -30,6 +31,7 @@ def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
 
 # Function for sync mode
 def sync(client, catalog, state, config):
+    """Function to sync records for all the selected streams"""
 
     selected_streams = list(catalog.get_selected_streams(state))
     selected_stream_names = []
@@ -43,7 +45,8 @@ def sync(client, catalog, state, config):
     streams_to_sync, child_streams_to_sync = get_streams_to_sync(catalog, selected_streams, selected_stream_names)
     for stream in streams_to_sync:
         stream_id = stream.tap_stream_id
-        stream_object = STREAMS.get(stream_id)(state, client, config, catalog, selected_stream_names, child_streams_to_sync)
+        stream_object = STREAMS.get(stream_id)(state, client, config, catalog, \
+            selected_stream_names, child_streams_to_sync)
 
         LOGGER.info('START Syncing: %s', stream_id)
 

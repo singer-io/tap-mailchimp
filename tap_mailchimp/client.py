@@ -170,11 +170,10 @@ class MailchimpClient:
         if url is None and path:
             url = self.__base_url + '/3.0' + path
 
+        endpoint = None
         if 'endpoint' in kwargs:
             endpoint = kwargs['endpoint']
             del kwargs['endpoint']
-        else:
-            endpoint = None
 
         if 'headers' not in kwargs:
             kwargs['headers'] = {}
