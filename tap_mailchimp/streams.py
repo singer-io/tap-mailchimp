@@ -67,7 +67,7 @@ class BaseStream:
     data_key = None
     extra_fields = None
     child = []
-    streams_to_sync = []
+    parent_streams = []
     bookmark_path = None
     bookmark_query_field = None
     report_streams = []
@@ -279,7 +279,7 @@ class ListMembers(Incremental):
     stream_name = 'list_members'
     key_properties = ['id', 'list_id']
     path = '/members'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'members'
     bookmark_path = ['lists', '', stream_name, 'datetime']
     bookmark_query_field = 'since_last_changed'
@@ -291,7 +291,7 @@ class ListSegments(FullTable):
     stream_name = 'list_segments'
     key_properties = ['id']
     path = '/segments'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'segments'
     child = ['list_segment_members']
 
@@ -301,7 +301,7 @@ class ListSegmentMembers(FullTable):
     stream_name = 'list_segment_members'
     key_properties = ['id']
     path = '/members'
-    streams_to_sync = ['lists', 'list_segments']
+    parent_streams = ['lists', 'list_segments']
     data_key = 'members'
 
 
@@ -325,7 +325,7 @@ class Unsubscribes(FullTable):
     stream_name = 'unsubscribes'
     key_properties = ['campaign_id', 'email_id']
     path = '/reports/{}/unsubscribed'
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     data_key = stream_name
 
 
@@ -334,7 +334,7 @@ class ReportEmailActivity(Incremental):
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
     key_properties = ['campaign_id', 'action', 'email_id', 'timestamp']
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
     replication_keys = ['timestamp']
@@ -407,10 +407,10 @@ class ReportEmailActivity(Incremental):
         """Function to get batch status"""
         try:
             return self.client.get('/batches/{}'.format(batch_id), endpoint='get_batch_info')
-        except HTTPError as e:
-            if e.response.status_code == 404:
+        except HTTPError as exc:
+            if exc.response.status_code == 404:
                 raise BatchExpiredError('Batch {} expired'.format(batch_id))
-            raise e
+            raise exc
 
     def check_and_resume_email_activity_batch(self):
         """Function to resume batch syncing from previous sync"""
@@ -456,7 +456,7 @@ class ReportEmailActivity(Incremental):
 
             if data['status'] == 'finished':
                 return data
-            elif (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
+            if (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
                 message = 'Mailchimp campaigns export is still in progress after {} seconds. \
                     Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
                 LOGGER.error(message)
