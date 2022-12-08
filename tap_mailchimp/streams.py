@@ -15,7 +15,7 @@ MIN_RETRY_INTERVAL = 2  # 2 seconds
 MAX_RETRY_INTERVAL = 300  # 5 minutes
 MAX_RETRY_ELAPSED_TIME = 43200  # 12 hours
 
-# Break up reports_email_activity batches to iterate over chunks
+# Break up reports_email_activity into batches to iterate over chunks
 EMAIL_ACTIVITY_BATCH_SIZE = 100
 
 DEFAULT_PAGE_SIZE = 1000
@@ -34,6 +34,7 @@ def next_sleep_interval(previous_sleep_interval):
 
 def chunk_campaigns(sorted_campaigns, chunk_bookmark):
     """Function to break list for sorted campaigns into the batch size and send the chunked list"""
+    # Get the chunk start and chunk end based on 'chunk_bookmark' and the batch size
     chunk_start = chunk_bookmark * EMAIL_ACTIVITY_BATCH_SIZE
     chunk_end = chunk_start + EMAIL_ACTIVITY_BATCH_SIZE
 
@@ -45,6 +46,7 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
 
     done = False
     while not done:
+        # Get the list of campaigns based on the chunk start and chunk end
         current_chunk = sorted_campaigns[chunk_start:chunk_end]
         done = len(current_chunk) == 0
         if not done:
@@ -54,7 +56,10 @@ def chunk_campaigns(sorted_campaigns, chunk_bookmark):
                         sorted_campaigns[end_index - 1],
                         chunk_start,
                         end_index - 1)
+            # Send the chunk of campaigns
             yield current_chunk
+
+        # Update the chunk start and chunk end for next chunk
         chunk_start = chunk_end
         chunk_end += EMAIL_ACTIVITY_BATCH_SIZE
 
@@ -79,7 +84,7 @@ class BaseStream:
     data_key = None
     extra_fields = None
     child = []
-    streams_to_sync = []
+    parent_streams = []
     bookmark_path = None
     bookmark_query_field = None
     report_streams = []
@@ -98,7 +103,9 @@ class BaseStream:
     def get_path(self, parent_id, child_stream_obj):
         """Function to return the API URL path based on the parent ids"""
         if child_stream_obj.stream_name in ['unsubscribes', 'reports_email_activity']:
+            # Return the child path with parent id
             return child_stream_obj.path.format(parent_id)
+        # Return path with parent path, parent id and child path
         return self.path + '/' + str(parent_id) + child_stream_obj.path
 
     @classmethod
@@ -135,6 +142,7 @@ class BaseStream:
         return dic
 
     def write_bookmark(self, path, value):
+        """Function to write bookmark at a specified bookmark path"""
         nested_set(self.state, ['bookmarks'] + path, value)
         singer.write_state(self.state)
 
@@ -182,13 +190,14 @@ class BaseStream:
         page_size = int(self.config.get('page_size', DEFAULT_PAGE_SIZE))
         offset = 0
         has_more = True
+        params = {
+            'count': page_size,
+            **self.params
+        }
         while has_more:
-            params = {
-                'count': page_size,
-                'offset': offset,
-                **self.params
-            }
+            params['offset'] = offset
 
+            # Add param for querying records after a particular date based on the 'bookmark_query_field'
             if self.bookmark_query_field:
                 params[self.bookmark_query_field] = last_datetime
 
@@ -288,7 +297,7 @@ class ListMembers(Incremental):
     stream_name = 'list_members'
     key_properties = ['id', 'list_id']
     path = '/members'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'members'
     bookmark_path = ['lists', '', stream_name, 'datetime']
     bookmark_query_field = 'since_last_changed'
@@ -300,7 +309,7 @@ class ListSegments(FullTable):
     stream_name = 'list_segments'
     key_properties = ['id']
     path = '/segments'
-    streams_to_sync = ['lists']
+    parent_streams = ['lists']
     data_key = 'segments'
     child = ['list_segment_members']
 
@@ -310,7 +319,7 @@ class ListSegmentMembers(FullTable):
     stream_name = 'list_segment_members'
     key_properties = ['id']
     path = '/members'
-    streams_to_sync = ['lists', 'list_segments']
+    parent_streams = ['lists', 'list_segments']
     data_key = 'members'
 
 
@@ -334,7 +343,7 @@ class Unsubscribes(FullTable):
     stream_name = 'unsubscribes'
     key_properties = ['campaign_id', 'email_id']
     path = '/reports/{}/unsubscribed'
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     data_key = stream_name
 
 
@@ -396,10 +405,10 @@ class ReportEmailActivity(Incremental):
         """Function to get batch status"""
         try:
             return self.client.get('/batches/{}'.format(batch_id), endpoint='get_batch_info')
-        except HTTPError as e:
-            if e.response.status_code == 404:
+        except HTTPError as exc:
+            if exc.response.status_code == 404:
                 raise BatchExpiredError('Batch {} expired'.format(batch_id))
-            raise e
+            raise exc
 
     def check_and_resume_email_activity_batch(self):
         """Function to resume batch syncing from previous sync"""
@@ -445,7 +454,7 @@ class ReportEmailActivity(Incremental):
 
             if data['status'] == 'finished':
                 return data
-            elif (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
+            if (time.time() - start_time) > MAX_RETRY_ELAPSED_TIME:
                 message = 'Mailchimp campaigns export is still in progress after {} seconds. \
                     Will continue with this export on the next sync.'.format(MAX_RETRY_ELAPSED_TIME)
                 LOGGER.error(message)
