@@ -65,7 +65,7 @@ class MailchimpInterruptedSyncTest(MailchimpBaseTest):
                 "lists": {
                     "8c775a04fb": {
                         "list_members": {
-                            "datetime": "2022-08-11T06:24:35+00:00"
+                            "datetime": "2022-08-11T06:24:35.000000Z"
                         }
                     }
                 }
@@ -155,7 +155,7 @@ class MailchimpInterruptedSyncTest(MailchimpBaseTest):
                     # - Verify the interrupted sync replicates the expected record set
                     for record in interrupted_records:
                         rec_time = self.parse_date(record.get(
-                            expected_replication_key), self.RECORD_DATETIME_FORMAT)
+                            expected_replication_key), self.BOOKMARK_DATETIME_FORMAT)
                         self.assertGreaterEqual(
                             rec_time, interrupted_bookmark_datetime)
 
@@ -166,7 +166,7 @@ class MailchimpInterruptedSyncTest(MailchimpBaseTest):
                     full_records_after_interrupted_bookmark = 0
                     for record in full_records:
                         rec_time = self.parse_date(record.get(
-                            expected_replication_key), self.RECORD_DATETIME_FORMAT)
+                            expected_replication_key), self.BOOKMARK_DATETIME_FORMAT)
                         if rec_time >= interrupted_bookmark_datetime:
                             full_records_after_interrupted_bookmark += 1
 
@@ -182,7 +182,7 @@ class MailchimpInterruptedSyncTest(MailchimpBaseTest):
                     # - Verify resuming sync replicates all records that were found in the full sync (un-interupted)
                     for record in interrupted_records:
                         rec_time = self.parse_date(record.get(
-                            expected_replication_key), self.RECORD_DATETIME_FORMAT)
+                            expected_replication_key), self.BOOKMARK_DATETIME_FORMAT)
                         self.assertGreaterEqual(
                             rec_time, synced_stream_datetime)
 

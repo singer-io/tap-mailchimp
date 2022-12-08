@@ -1,10 +1,7 @@
 import unittest
-import datetime
 import os
 from tap_tester import menagerie, runner, connections, LOGGER
 from datetime import datetime as dt
-import dateutil.parser
-import pytz
 
 
 class MailchimpBaseTest(unittest.TestCase):
@@ -24,8 +21,7 @@ class MailchimpBaseTest(unittest.TestCase):
     INCREMENTAL = "INCREMENTAL"
     OBEYS_START_DATE = "obey-start-date"
     BOOKMARK_PATH = "bookmark-path"
-    RECORD_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
-    BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S+00:00"
+    BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
     PARENT = "parent-stream"
 
     def tap_name(self):
@@ -123,9 +119,10 @@ class MailchimpBaseTest(unittest.TestCase):
             },
             "unsubscribes": {
                 self.PRIMARY_KEYS: {"campaign_id", "email_id"},
-                self.REPLICATION_METHOD: self.FULL_TABLE,
-                self.OBEYS_START_DATE: False,
-                self.BOOKMARK_PATH: None,
+                self.REPLICATION_METHOD: self.INCREMENTAL,
+                self.OBEYS_START_DATE: True,
+                self.REPLICATION_KEYS: {"timestamp"},
+                self.BOOKMARK_PATH: ['unsubscribes', '5b483c58de', 'timestamp'],
                 self.PARENT: "campaigns"
             },
         }
