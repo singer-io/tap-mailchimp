@@ -19,6 +19,32 @@
         "string"
       ]
     },
+    "contact_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "full_name": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "consents_to_one_to_one_messaging": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
+    "interests": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {}
+    },
     "unique_email_id": {
       "type": [
         "null",
@@ -43,8 +69,7 @@
         "string"
       ]
     },
-    "merge_fields": {
-    },
+    "merge_fields": {},
     "stats": {
       "type": [
         "null",
@@ -63,6 +88,33 @@
             "null",
             "number"
           ]
+        },
+        "ecommerce_data": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "total_revenue": {
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "number_of_orders": {
+              "type": [
+                "null",
+                "number"
+              ]
+            },
+            "currency_code": {
+              "type": [
+                "null",
+                "string"
+              ]
+            }
+          }
         }
       }
     },
@@ -154,6 +206,12 @@
             "integer"
           ]
         },
+        "region": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
         "country_code": {
           "type": [
             "null",
@@ -210,6 +268,72 @@
         "null",
         "string"
       ]
+    },
+    "marketing_permissions": {
+      "type": [
+        "null",
+        "array"
+      ],
+      "items": {
+        "type": [
+          "null",
+          "object"
+        ],
+        "properties": {
+          "marketing_permission_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "text": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "enabled": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        }
+      }
+    },
+    "last_note": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "note_id": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "note": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
     }
   }
 }
