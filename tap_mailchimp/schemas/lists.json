@@ -223,12 +223,6 @@
             "integer"
           ]
         },
-        "total_contacts": {
-          "type": [
-            "null",
-            "integer"
-          ]
-        },
         "cleaned_count": {
           "type": [
             "null",
