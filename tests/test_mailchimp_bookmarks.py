@@ -61,13 +61,16 @@ class MailchimpBookMark(MailchimpBaseTest):
             "bookmarks": {
                 "lists": {
                     "8c775a04fb": {  # Verifying bookmark for single list's 'list_members'
-                        "list_members": {"datetime": "2022-08-01T06:23:35+00:00"}
+                        "list_members": {"datetime": "2022-08-01T06:23:35.000000Z"}
                     }
                 },
                 "reports_email_activity_next_chunk": 0,
                 "reports_email_activity_last_run_id": None,
                 "reports_email_activity": {  # Verifying bookmark for single campaign's 'reports_email_activity'
-                    "32e6edcecb": "2016-05-15T18:57:16+00:00"
+                    "32e6edcecb": "2016-05-15T18:57:16.000000Z"
+                },
+                "unsubscribes": { # Verifying bookmark for single campaign's 'unsubscribers'
+                    "5b483c58de": {"timestamp": "2014-10-23T23:37:21.000000Z"}
                 },
             }
         }
@@ -168,7 +171,7 @@ class MailchimpBookMark(MailchimpBaseTest):
 
                         # Verify the first sync bookmark value is the max replication key value for a given stream
                         replication_key_value = self.parse_date(
-                            record.get(replication_key), self.RECORD_DATETIME_FORMAT
+                            record.get(replication_key), self.BOOKMARK_DATETIME_FORMAT
                         )
 
                         self.assertLessEqual(
@@ -180,7 +183,7 @@ class MailchimpBookMark(MailchimpBaseTest):
                     for record in second_sync_messages:
                         # Verify the second sync replication key value is Greater or Equal to the first sync bookmark
                         replication_key_value = self.parse_date(
-                            record.get(replication_key), self.RECORD_DATETIME_FORMAT
+                            record.get(replication_key), self.BOOKMARK_DATETIME_FORMAT
                         )
                         self.assertGreaterEqual(
                             replication_key_value,

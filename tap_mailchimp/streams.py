@@ -115,18 +115,21 @@ class BaseStream:
         schema = stream.schema.to_dict()
         singer.write_schema(cls.stream_name, schema, stream.key_properties)
 
-    def process_records(self, records, max_bookmark_field=None):
+    def process_records(self, records, max_bookmark_field=None, sync_start=None):
         """Function to transform and write records and get the maximum bookmark value"""
         stream = self.stream
         schema = stream.schema.to_dict()
         stream_metadata = metadata.to_map(stream.metadata)
         with metrics.record_counter(self.stream_name) as counter, Transformer() as transformer:
             for record in records:
-                if self.replication_keys and (max_bookmark_field is None or record[self.replication_keys[0]] > max_bookmark_field):
-                    max_bookmark_field = record[self.replication_keys[0]]
                 record = transformer.transform(record,
                                                schema,
                                                stream_metadata)
+                # Skip records before the sync start date ie. (bookmark or start date)
+                if sync_start and record[self.replication_keys[0]] < sync_start:
+                    continue
+                if self.replication_keys and (max_bookmark_field is None or record[self.replication_keys[0]] > max_bookmark_field):
+                    max_bookmark_field = record[self.replication_keys[0]]
                 singer.write_record(self.stream_name, record)
                 counter.increment()
             return max_bookmark_field
@@ -239,7 +242,7 @@ class BaseStream:
 
             # If the stream is selected then write records
             if self.to_write_records:
-                max_bookmark_field = self.process_records(raw_records, max_bookmark_field)
+                max_bookmark_field = self.process_records(raw_records, max_bookmark_field, sync_start_date)
 
             # Sync 'reports' stream based on 'ids' collected for every record
             for report_stream in self.report_streams:
@@ -250,7 +253,8 @@ class BaseStream:
                     self.catalog, self.selected_stream_names, self.child_streams_to_sync)
                 reports_stream_obj.sync_report_activities(ids)
 
-            if self.bookmark_query_field:
+            # Write bookmark for Incremental streams
+            if self.bookmark_query_field or self.stream_name in ["unsubscribes"]:
                 self.write_bookmark(self.bookmark_path, max_bookmark_field)
 
             offset += page_size
@@ -338,13 +342,15 @@ class Campaigns(FullTable):
     data_key = stream_name
 
 
-class Unsubscribes(FullTable):
+class Unsubscribes(Incremental):
     """Class for 'unsubscribes' stream"""
     stream_name = 'unsubscribes'
     key_properties = ['campaign_id', 'email_id']
     path = '/reports/{}/unsubscribed'
     parent_streams = ['campaigns']
     data_key = stream_name
+    bookmark_path = [stream_name, '', 'timestamp']
+    replication_keys = ['timestamp']
 
 
 class ReportEmailActivity(Incremental):
