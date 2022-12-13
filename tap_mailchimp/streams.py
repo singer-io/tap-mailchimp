@@ -358,7 +358,7 @@ class ReportEmailActivity(Incremental):
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
     key_properties = ['_sdc_record_hash']
-    streams_to_sync = ['campaigns']
+    parent_streams = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
     replication_keys = ['timestamp']
