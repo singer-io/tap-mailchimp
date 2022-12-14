@@ -22,8 +22,7 @@ class MailchimpBaseTest(unittest.TestCase):
     OBEYS_START_DATE = "obey-start-date"
     BOOKMARK_PATH = "bookmark-path"
     EXTRA_AUTOMATIC_FIELDS = "extra-automatic-fields"
-    RECORD_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
-    BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S+00:00"
+    BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
     PARENT = "parent-stream"
 
     def tap_name(self):
@@ -116,7 +115,8 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {"timestamp"},
                 self.OBEYS_START_DATE: True,
-                self.BOOKMARK_PATH: ['reports_email_activity', '32e6edcecb'],
+                self.BOOKMARK_PATH: ["reports_email_activity", "32e6edcecb"],
+                self.PARENT: "campaigns",
                 self.EXTRA_AUTOMATIC_FIELDS: {'action', 'campaign_id', 'email_id', 'timestamp', 'ip'}
             },
             "unsubscribes": {
