@@ -112,6 +112,10 @@
       ]
     },
     "interests": {
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "location": {
       "type": [
