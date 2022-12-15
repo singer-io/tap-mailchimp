@@ -32,6 +32,10 @@
       ]
     },
     "merge_fields": {
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "stats": {
       "type": [
