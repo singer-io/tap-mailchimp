@@ -1,3 +1,4 @@
+import hashlib
 import json
 import time
 import random
@@ -31,22 +32,6 @@ def next_sleep_interval(previous_sleep_interval):
     return min(MAX_RETRY_INTERVAL, random.randint(min_interval, max_interval))
 
 
-def transform_activities(records):
-    """Function to move activity at the top-level from the email activity records"""
-    for record in records:
-        if 'activity' in record:
-            if '_links' in record:
-                del record['_links']
-            record_template = dict(record)
-            del record_template['activity']
-
-            for activity in record['activity']:
-                new_activity = dict(record_template)
-                for key, value in activity.items():
-                    new_activity[key] = value
-                yield new_activity
-
-
 def nested_set(dic, path, value):
     """Function to set bookmark of child stream for every parent ids"""
     for key in path[:-1]:
@@ -71,6 +56,7 @@ class BaseStream:
     bookmark_path = None
     bookmark_query_field = None
     report_streams = []
+    extra_automatic_fields = []
 
     def __init__(self, state, client, config, catalog, selected_stream_names, child_streams_to_sync):
         self.state = state
@@ -339,11 +325,41 @@ class ReportEmailActivity(Incremental):
     """Class for 'reports_email_activity' stream"""
     stream_name = 'reports_email_activity'
     extra_fields = ['emails.activity']
-    key_properties = ['campaign_id', 'action', 'email_id', 'timestamp']
+    key_properties = ['_sdc_record_hash']
     parent_streams = ['campaigns']
     path = '/reports/{}/email-activity'
     data_key = 'emails'
     replication_keys = ['timestamp']
+    # We must pass a list of fields for which we want data to the Mailchimp API.
+    # As a result, make these fields automatic, as they are used to generate the '_sdc record hash' Primary Key.
+    extra_automatic_fields = ['campaign_id', 'action', 'email_id', 'timestamp', 'ip']
+
+    def transform_activities(self, records):
+        """Function to move activity at the top-level from the email activity records"""
+
+        for record in records:
+            if 'activity' in record:
+                if '_links' in record:
+                    del record['_links']
+                record_template = dict(record)
+                del record_template['activity']
+
+                for activity in record['activity']:
+                    hash_string = ''
+                    new_activity = dict(record_template)
+                    for key, value in activity.items():
+                        new_activity[key] = value
+
+                    # Create hash string of key-value ie. key1value1key2value2...
+                    for field in self.extra_automatic_fields:
+                        hash_string += field + str(new_activity.get(field, ''))
+
+                    hash_string_bytes = hash_string.encode('utf-8')
+                    hashed_string = hashlib.sha256(hash_string_bytes).hexdigest()
+                    # Create a record for hashed string
+                    new_activity['_sdc_record_hash'] = hashed_string
+
+                    yield new_activity
 
     def __init__(self, state, client, config, catalog, selected_stream_names, child_streams_to_sync):
         """Override the __init__ and set 'chunk_size' class variable to use throughout the class"""
@@ -497,7 +513,7 @@ class ReportEmailActivity(Incremental):
                                 response = json.loads(operation['response'])
                                 email_activities = response['emails']
 
-                                max_bookmark_field = self.process_records(transform_activities(email_activities), last_bookmark)
+                                max_bookmark_field = self.process_records(self.transform_activities(email_activities), last_bookmark)
                                 self.write_bookmark([self.stream_name, campaign_id], max_bookmark_field)
                     file = tar.next()
         return failed_campaign_ids
