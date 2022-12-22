@@ -46,7 +46,7 @@ workflows:
   commit:
     jobs:
       - build:
-          context: 
+          context:
           - circleci-user
           - tap-tester-user
   build_daily:
@@ -59,6 +59,6 @@ workflows:
                 - master
     jobs:
       - build:
-          context: 
+          context:
           - circleci-user
           - tap-tester-user
