@@ -14,12 +14,10 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
         return "tap_tester_mailchimp_automatic_fields_test"
 
     def test_run(self):
-        """Verify we can deselect all fields except when inclusion=automatic,
-        which is handled by base.py methods Verify that only the automatic
-        fields are sent to the target.
-
-        Verify that all replicated records have unique primary key
-        values.
+        """
+        - Verify that when no fields are selected and only the automatic fields are replicated.
+        - Verify that all replicated records have unique primary key values.
+        - Verify that you get records for all streams
         """
 
         expected_streams = self.expected_streams()
