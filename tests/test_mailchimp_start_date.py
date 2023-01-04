@@ -1,30 +1,27 @@
-from tap_tester import runner, connections, LOGGER
 from base import MailchimpBaseTest
+from tap_tester import LOGGER, connections, runner
 
 
 class MailchimpStartDate(MailchimpBaseTest):
-    """
-    Ensure all expected streams respect the start date. Run tap in check mode,
-    run 1st sync with start date = 2013-01-01, run check mode and 2nd sync on a new connection with start date = 2014-07-01.
-    """
+    """Test that the start_date configuration is respected."""
 
     start_date_1 = ""
     start_date_2 = ""
 
     def name(self):
-        """Returns name of the test"""
+        """Returns name of the test."""
         return "tap_tester_mailchimp_start_date_test"
 
     def test_run(self):
         """
-        Test that the start_date configuration is respected
-        • Verify that a sync with a later start date has at least one record synced
-        and less records than the 1st sync with a previous start date
-        • Verify that each stream has less records than the earlier start date sync
-        • Verify all data from later start data has bookmark values >= start_date
+        - verify that a sync with a later start date has at least one record
+        synced and less records than the 1st sync with a previous start date
+        - verify that each stream has less records than the earlier start date sync
+        - verify all data from later start data has bookmark values >= start_date
+        - verify that the minimum bookmark sent to the target for the later start_date sync is >= start date
         """
         # Streams to verify start date tests
-        expected_streams = self.expected_check_streams()
+        expected_streams = self.expected_streams()
 
         # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.
         expected_streams = expected_streams - {"automations"}
@@ -33,7 +30,7 @@ class MailchimpStartDate(MailchimpBaseTest):
 
     def run_test(self, expected_streams):
         self.start_date_1 = self.get_properties().get("start_date")
-        self.start_date_2 = "2014-07-01T00:00:00Z"
+        self.start_date_2 = "2014-10-23T00:00:00Z"
         self.start_date = self.start_date_1
 
         ##########################################################################
@@ -48,13 +45,9 @@ class MailchimpStartDate(MailchimpBaseTest):
 
         # Table and field selection
         test_catalogs_1_all_fields = [
-            catalog
-            for catalog in found_catalogs_1
-            if catalog.get("tap_stream_id") in expected_streams
+            catalog for catalog in found_catalogs_1 if catalog.get("tap_stream_id") in expected_streams
         ]
-        self.perform_and_verify_table_and_field_selection(
-            conn_id_1, test_catalogs_1_all_fields, select_all_fields=True
-        )
+        self.perform_and_verify_table_and_field_selection(conn_id_1, test_catalogs_1_all_fields, select_all_fields=True)
 
         # Run initial sync
         record_count_by_stream_1 = self.run_and_verify_sync(conn_id_1)
@@ -64,11 +57,7 @@ class MailchimpStartDate(MailchimpBaseTest):
         # Update START DATE Between Syncs
         ##########################################################################
 
-        LOGGER.info(
-            "REPLICATION START DATE CHANGE: {} ===>>> {} ".format(
-                self.start_date, self.start_date_2
-            )
-        )
+        LOGGER.info(f"REPLICATION START DATE CHANGE: {self.start_date} ===>>> {self.start_date_2} ")
         self.start_date = self.start_date_2
 
         ##########################################################################
@@ -83,13 +72,9 @@ class MailchimpStartDate(MailchimpBaseTest):
 
         # Table and field selection
         test_catalogs_2_all_fields = [
-            catalog
-            for catalog in found_catalogs_2
-            if catalog.get("tap_stream_id") in expected_streams
+            catalog for catalog in found_catalogs_2 if catalog.get("tap_stream_id") in expected_streams
         ]
-        self.perform_and_verify_table_and_field_selection(
-            conn_id_2, test_catalogs_2_all_fields, select_all_fields=True
-        )
+        self.perform_and_verify_table_and_field_selection(conn_id_2, test_catalogs_2_all_fields, select_all_fields=True)
 
         # Run sync
         record_count_by_stream_2 = self.run_and_verify_sync(conn_id_2)
@@ -106,18 +91,12 @@ class MailchimpStartDate(MailchimpBaseTest):
                 record_count_sync_2 = record_count_by_stream_2.get(stream, 0)
 
                 primary_keys_list_1 = [
-                    tuple(
-                        message.get("data").get(expected_pk)
-                        for expected_pk in expected_primary_keys
-                    )
+                    tuple(message.get("data").get(expected_pk) for expected_pk in expected_primary_keys)
                     for message in synced_records_1.get(stream, {}).get("messages", [])
                     if message.get("action") == "upsert"
                 ]
                 primary_keys_list_2 = [
-                    tuple(
-                        message.get("data").get(expected_pk)
-                        for expected_pk in expected_primary_keys
-                    )
+                    tuple(message.get("data").get(expected_pk) for expected_pk in expected_primary_keys)
                     for message in synced_records_2.get(stream, {}).get("messages", [])
                     if message.get("action") == "upsert"
                 ]
@@ -128,21 +107,15 @@ class MailchimpStartDate(MailchimpBaseTest):
                 if self.expected_metadata()[stream][self.OBEYS_START_DATE]:
 
                     # Collect information specific to incremental streams from syncs 1 & 2
-                    expected_replication_key = next(
-                        iter(self.expected_replication_keys().get(stream, []))
-                    )
+                    expected_replication_key = next(iter(self.expected_replication_keys().get(stream, [])))
                     replication_dates_1 = [
                         row.get("data").get(expected_replication_key)
-                        for row in synced_records_1.get(stream, {"messages": []}).get(
-                            "messages", []
-                        )
+                        for row in synced_records_1.get(stream, {"messages": []}).get("messages", [])
                         if row.get("data")
                     ]
                     replication_dates_2 = [
                         row.get("data").get(expected_replication_key)
-                        for row in synced_records_2.get(stream, {"messages": []}).get(
-                            "messages", []
-                        )
+                        for row in synced_records_2.get(stream, {"messages": []}).get("messages", [])
                         if row.get("data")
                     ]
 
@@ -150,26 +123,22 @@ class MailchimpStartDate(MailchimpBaseTest):
                     for replication_date in replication_dates_1:
 
                         self.assertGreaterEqual(
-                            self.parse_date(
-                                replication_date, self.RECORD_DATETIME_FORMAT
-                            ),
+                            self.parse_date(replication_date, self.BOOKMARK_DATETIME_FORMAT),
                             self.parse_date(self.start_date_1, self.START_DATE_FORMAT),
                             msg="Report pertains to a date prior to our start date.\n"
-                            + "Sync start_date: {}\n".format(self.start_date_1)
-                            + "Record date: {} ".format(replication_date),
+                            + f"Sync start_date: {self.start_date_1}\n"
+                            + f"Record date: {replication_date} ",
                         )
 
                     # Verify replication key is greater or equal to start_date for sync 2
                     for replication_date in replication_dates_2:
 
                         self.assertGreaterEqual(
-                            self.parse_date(
-                                replication_date, self.RECORD_DATETIME_FORMAT
-                            ),
+                            self.parse_date(replication_date, self.BOOKMARK_DATETIME_FORMAT),
                             self.parse_date(self.start_date_2, self.START_DATE_FORMAT),
                             msg="Report pertains to a date prior to our start date.\n"
-                            + "Sync start_date: {}\n".format(self.start_date_2)
-                            + "Record date: {} ".format(replication_date),
+                            + f"Sync start_date: {self.start_date_2}\n"
+                            + f"Record date: {replication_date} ",
                         )
                     # Verify the number of records replicated in sync 1 is greater than the number
                     # of records replicated in sync 2
