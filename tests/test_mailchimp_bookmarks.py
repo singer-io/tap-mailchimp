@@ -111,13 +111,6 @@ class MailchimpBookMark(MailchimpBaseTest):
                     msg=f"We are not fully testing bookmarking for {stream}",
                 )
                 
-                # Verify that you get less data the 2nd time around
-                self.assertLess(
-                    second_sync_count,
-                    first_sync_count,
-                    msg="second sync didn't have less records, bookmark usage not verified",
-                )
-
                 if expected_replication_method == self.INCREMENTAL:
                     # Get parent key in child's record
                     parent_id = "campaign_id" if stream == "reports_email_activity" else "list_id"
@@ -181,6 +174,21 @@ class MailchimpBookMark(MailchimpBaseTest):
                             second_bookmark_value_ts,
                             msg="Second sync bookmark was set incorrectly, a record with a greater replication-key value was synced.",
                         )
+                
+                        # Verify that you get less data the 2nd time around
+                        self.assertLess(
+                            second_sync_count,
+                            first_sync_count,
+                            msg="second sync didn't have less records, bookmark usage not verified",
+                        )
+
+                        # Verify at least 1 record was replicated in the second sync
+                        self.assertGreater(
+                            second_sync_count,
+                            0,
+                            msg=f"We are not fully testing bookmarking for {stream}",
+                        )
+
 
                 elif expected_replication_method == self.FULL_TABLE:
 
