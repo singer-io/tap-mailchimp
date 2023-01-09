@@ -3,6 +3,7 @@ from tap_tester import connections, menagerie, runner
 
 
 class MailchimpInterruptedSyncTest(MailchimpBaseTest):
+
     def name(self):
         return "tap_tester_mailchimp_interrupted_sync_test"
 

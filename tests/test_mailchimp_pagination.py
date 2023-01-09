@@ -11,7 +11,6 @@ class MailchimpPagination(MailchimpBaseTest):
     page_size = 2
 
     def name(self):
-        """Returns name of the test."""
         return "tap_tester_mailchimp_pagination_test"
 
     def get_properties(self, original=True):

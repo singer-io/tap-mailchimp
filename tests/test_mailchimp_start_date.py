@@ -9,7 +9,6 @@ class MailchimpStartDate(MailchimpBaseTest):
     start_date_2 = ""
 
     def name(self):
-        """Returns name of the test."""
         return "tap_tester_mailchimp_start_date_test"
 
     def test_run(self):

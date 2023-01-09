@@ -8,7 +8,6 @@ class MailchimpDiscover(MailchimpBaseTest):
     """Test tap discover mode and metadata conforms to standards."""
 
     def name(self):
-        """Returns name of the test."""
         return "tap_tester_mailchimp_discover_test"
 
     def test_run(self):
