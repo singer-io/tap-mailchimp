@@ -15,7 +15,7 @@ class MailchimpStartDate(MailchimpBaseTest):
     def test_run(self):
         """
         - verify that a sync with a later start date has at least one record
-        synced and less records than the 1st sync with a previous start date
+          synced and less records than the 1st sync with a previous start date
         - verify that each stream has less records than the earlier start date sync
         - verify all data from later start data has bookmark values >= start_date
         - verify that the minimum bookmark sent to the target for the later start_date sync is >= start date
