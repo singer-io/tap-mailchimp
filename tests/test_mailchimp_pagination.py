@@ -21,12 +21,10 @@ class MailchimpPagination(MailchimpBaseTest):
         return props
 
     def test_run(self):
-        """• Verify that for each stream you can get multiple pages of data.
-        This requires we ensure more than 1 page of data exists at all times
-        for any given stream.
-
-        • Verify by pks that the data replicated matches the data we
-        expect.
+        """
+        - Verify that for each stream you can get multiple pages of data.
+          This requires we ensure more than 1 page of data exists at all times for any given stream.
+        - Verify by pks that the data replicated matches the data we expect.
         """
 
         # Need to upgrade the mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.

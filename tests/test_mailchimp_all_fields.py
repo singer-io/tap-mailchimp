@@ -55,7 +55,7 @@ class MailchimpAllFields(MailchimpBaseTest):
         synced_records = runner.get_records_from_target_output()
 
         # Verify no unexpected streams were replicated
-        self.assertSetEqual(expected_streams, synced_records.keys())
+        self.assertEqual(expected_streams, synced_records.keys())
 
         for stream in expected_streams:
             with self.subTest(stream=stream):
