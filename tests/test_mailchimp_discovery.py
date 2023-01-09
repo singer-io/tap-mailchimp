@@ -8,13 +8,10 @@ class MailchimpDiscover(MailchimpBaseTest):
     """Test tap discover mode and metadata conforms to standards."""
 
     def name(self):
-        """Returns name of the test."""
         return "tap_tester_mailchimp_discover_test"
 
     def test_run(self):
-        """Testing that discovery creates the appropriate catalog with valid
-        metadata.
-
+        """
         - Verify number of actual streams discovered match expected
         - Verify stream names follow naming convention (streams should only have lowercase alphas and underscores_
         - verify there is only 1 top level breadcrumb

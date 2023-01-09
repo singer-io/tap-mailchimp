@@ -11,7 +11,6 @@ class MailchimpPagination(MailchimpBaseTest):
     page_size = 2
 
     def name(self):
-        """Returns name of the test."""
         return "tap_tester_mailchimp_pagination_test"
 
     def get_properties(self, original=True):
@@ -23,7 +22,7 @@ class MailchimpPagination(MailchimpBaseTest):
     def test_run(self):
         """
         - Verify that for each stream you can get multiple pages of data.
-            This requires we ensure more than 1 page of data exists at all times for any given stream.
+          This requires we ensure more than 1 page of data exists at all times for any given stream.
         - Verify by pks that the data replicated matches the data we expect.
         """
 

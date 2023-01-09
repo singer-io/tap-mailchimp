@@ -5,8 +5,7 @@ from tap_tester import menagerie
 
 
 class MailchimpBookMark(MailchimpBaseTest):
-    """Test that tap sets a bookmark and respects it for the next sync of a
-    stream."""
+    """Test that tap sets a bookmark and respects it for the next sync of a stream"""
 
     def name(self):
         return "tap_tester_mailchimp_bookmark_test"
@@ -34,7 +33,11 @@ class MailchimpBookMark(MailchimpBaseTest):
         found_catalogs = self.run_and_verify_check_mode(conn_id)
 
         # Table and field selection
-        catalog_entries = [catalog for catalog in found_catalogs if catalog.get("tap_stream_id") in expected_streams]
+        catalog_entries = [
+            catalog
+            for catalog in found_catalogs
+            if catalog.get("tap_stream_id") in expected_streams
+        ]
 
         self.perform_and_verify_table_and_field_selection(conn_id, catalog_entries)
 
@@ -98,11 +101,17 @@ class MailchimpBookMark(MailchimpBaseTest):
                 ]
                 second_sync_messages = [
                     record.get("data")
-                    for record in second_sync_records.get(stream, {}).get("messages", [])
+                    for record in second_sync_records.get(stream, {}).get(
+                        "messages", []
+                    )
                     if record.get("action") == "upsert"
                 ]
-                first_bookmark_value = self.get_bookmark(first_sync_bookmarks.get("bookmarks"), stream_bookmark_path)
-                second_bookmark_value = self.get_bookmark(second_sync_bookmarks.get("bookmarks"), stream_bookmark_path)
+                first_bookmark_value = self.get_bookmark(
+                    first_sync_bookmarks.get("bookmarks"), stream_bookmark_path
+                )
+                second_bookmark_value = self.get_bookmark(
+                    second_sync_bookmarks.get("bookmarks"), stream_bookmark_path
+                )
 
                 # Verify at least 1 record was replicated in the second sync
                 self.assertGreater(
@@ -113,25 +122,39 @@ class MailchimpBookMark(MailchimpBaseTest):
                 
                 if expected_replication_method == self.INCREMENTAL:
                     # Get parent key in child's record
-                    parent_id = "campaign_id" if stream == "reports_email_activity" else "list_id"
+                    parent_id = (
+                        "campaign_id"
+                        if stream == "reports_email_activity"
+                        else "list_id"
+                    )
                     # Get parent id from bookmark
                     parent_id_value = stream_bookmark_path[1]
                     # Collect child records with parent's id from both syncs
                     first_sync_messages = [
-                        record for record in first_sync_messages if record.get(parent_id) == parent_id_value
+                        record
+                        for record in first_sync_messages
+                        if record.get(parent_id) == parent_id_value
                     ]
                     second_sync_messages = [
-                        record for record in second_sync_messages if record.get(parent_id) == parent_id_value
+                        record
+                        for record in second_sync_messages
+                        if record.get(parent_id) == parent_id_value
                     ]
 
                     replication_key = list(expected_replication_keys[stream])[0]
 
-                    first_bookmark_value_ts = self.parse_date(first_bookmark_value, self.BOOKMARK_DATETIME_FORMAT)
+                    first_bookmark_value_ts = self.parse_date(
+                        first_bookmark_value, self.BOOKMARK_DATETIME_FORMAT
+                    )
 
-                    second_bookmark_value_ts = self.parse_date(second_bookmark_value, self.BOOKMARK_DATETIME_FORMAT)
+                    second_bookmark_value_ts = self.parse_date(
+                        second_bookmark_value, self.BOOKMARK_DATETIME_FORMAT
+                    )
 
                     simulated_bookmark_value = self.parse_date(
-                        self.get_bookmark(new_states.get("bookmarks"), stream_bookmark_path),
+                        self.get_bookmark(
+                            new_states.get("bookmarks"), stream_bookmark_path
+                        ),
                         self.BOOKMARK_DATETIME_FORMAT,
                     )
 
@@ -143,6 +166,13 @@ class MailchimpBookMark(MailchimpBaseTest):
 
                     # Verify the second sync bookmark is Equal to the first sync bookmark
                     self.assertEqual(second_bookmark_value, first_bookmark_value)
+
+                    # Verify that you get less data the 2nd time around
+                    self.assertLess(
+                            second_sync_count,
+                            first_sync_count,
+                            msg="second sync didn't have less records, bookmark usage not verified",
+                        )
 
                     for record in first_sync_messages:
 
@@ -174,21 +204,6 @@ class MailchimpBookMark(MailchimpBaseTest):
                             second_bookmark_value_ts,
                             msg="Second sync bookmark was set incorrectly, a record with a greater replication-key value was synced.",
                         )
-                
-                        # Verify that you get less data the 2nd time around
-                        self.assertLess(
-                            second_sync_count,
-                            first_sync_count,
-                            msg="second sync didn't have less records, bookmark usage not verified",
-                        )
-
-                        # Verify at least 1 record was replicated in the second sync
-                        self.assertGreater(
-                            second_sync_count,
-                            0,
-                            msg=f"We are not fully testing bookmarking for {stream}",
-                        )
-
 
                 elif expected_replication_method == self.FULL_TABLE:
 
@@ -209,4 +224,3 @@ class MailchimpBookMark(MailchimpBaseTest):
                             stream, expected_replication_method
                         )
                     )
-

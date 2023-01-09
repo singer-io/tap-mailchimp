@@ -3,21 +3,17 @@ from tap_tester import connections, menagerie, runner
 
 
 class MailchimpInterruptedSyncTest(MailchimpBaseTest):
+
     def name(self):
         return "tap_tester_mailchimp_interrupted_sync_test"
 
     def test_run(self):
         """
-        Scenario: A sync job is interrupted. The state is saved with `currently_syncing`.
-                  The next sync job kicks off and the tap picks back up on that
-                  `currently_syncing` stream.
-        Test Cases:
-        - Verify an interrupted sync can resume based on the `currently_syncing` and
-            stream level bookmark value.
-        - Verify only records with replication-key values greater than or equal to the
-            stream level bookmark are replicated on the resuming sync for the interrupted stream.
+        - Verify an interrupted sync can resume based on the `currently_syncing` and stream level bookmark value.
+        - Verify only records with replication-key values greater than or equal to the stream level bookmark
+          are replicated on the resuming sync for the interrupted stream.
         - Verify the yet-to-be-synced streams are replicated following the interrupted stream
-            in the resuming sync.
+          in the resuming sync.
         """
 
         self.start_date = "2014-07-05T00:00:00Z"
