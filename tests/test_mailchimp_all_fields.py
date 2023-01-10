@@ -64,8 +64,8 @@ class MailchimpAllFields(MailchimpBaseTest):
                 data = synced_records.get(stream)
                 actual_all_keys = set()
 
-                for message in data['messages']:
-                    if message['action'] == 'upsert':
+                for message in data["messages"]:
+                    if message["action"] == "upsert":
                         actual_all_keys.update(message["data"].keys())
 
                 self.assertTrue(
