@@ -56,11 +56,6 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
                     message.get("data") for message in data.get("messages", []) if message.get("action") == "upsert"
                 ]
 
-                # Remove duplicate records
-                # NOTE: 'list_segment_members' included data about members from different segments of the lists. There a
-                # possibility that a user can be a member of multiple segments.
-                # Thus, there will be duplication of records.
-                # Reference: https://jira.talendforge.org/browse/TDL-20303
                 primary_keys_list = [
                     tuple(message.get(expected_pk) for expected_pk in expected_primary_keys)
                     for message in [json.loads(t) for t in {json.dumps(d) for d in records}]
