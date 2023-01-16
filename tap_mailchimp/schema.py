@@ -1,64 +1,51 @@
-import os
 import json
+import os
+from singer import metadata
+from tap_mailchimp.streams import STREAMS
 
-SCHEMAS = {}
-FIELD_METADATA = {}
-
-PKS = {
-    'automations': ['id'],
-    'campaigns': ['id'],
-    'list_members': ['id', 'list_id'],
-    'list_segment_members': ['id'],
-    'list_segments': ['id'],
-    'lists': ['id'],
-    'reports_email_activity': [
-        'campaign_id',
-        'action',
-        'email_id',
-        'timestamp'
-    ],
-    'unsubscribes': ['campaign_id', 'email_id']
-}
-
-REPLICATION_KEYS = {
-    'list_members': ['last_changed'],
-}
 
 def get_abs_path(path):
+    """Function to get the path of the stream schema file"""
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
+
 def get_schemas():
-    global SCHEMAS, FIELD_METADATA # pylint: disable=global-statement
+    """Function to generate catalog by fetching schema from the """
+    schemas = {}
+    field_metadata = {}
 
-    if SCHEMAS:
-        return SCHEMAS, FIELD_METADATA
+    for stream_obj in STREAMS.values():
+        stream_name = stream_obj.stream_name
+        schema_path = get_abs_path('schemas/{}.json'.format(stream_name))
 
-    schemas_path = get_abs_path('schemas')
+        with open(schema_path) as file:
+            schema_dict = json.load(file)
+        schemas[stream_name] = schema_dict
 
-    file_names = [f for f in os.listdir(schemas_path)
-                  if os.path.isfile(os.path.join(schemas_path, f))]
+        # Documentation:
+        #   https://github.com/singer-io/getting-started/blob/master/docs/DISCOVERY_MODE.md#singer-python-helper-functions
+        # Reference:
+        #   https://github.com/singer-io/singer-python/blob/master/singer/metadata.py#L25-L44
+        mdata = metadata.get_standard_metadata(
+            schema=schema_dict,
+            key_properties=stream_obj.key_properties,
+            valid_replication_keys=stream_obj.replication_keys,
+            replication_method=stream_obj.replication_method
+        )
 
-    for file_name in file_names:
-        stream_name = file_name[:-5]
-        with open(os.path.join(schemas_path, file_name)) as data_file:
-            schema = json.load(data_file)
+        mdata_map = metadata.to_map(mdata)
 
-        SCHEMAS[stream_name] = schema
-        pk = PKS[stream_name]
-        replication_keys = REPLICATION_KEYS.get(stream_name, [])
+        # Update inclusion of "replication keys" as "automatic"
+        if stream_obj.replication_keys:
+            for replication_key in stream_obj.replication_keys:
+                mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
 
-        metadata = []
-        for prop in schema['properties'].keys():
-            if prop in pk or prop in replication_keys:
-                inclusion = 'automatic'
-            else:
-                inclusion = 'available'
-            metadata.append({
-                'metadata': {
-                    'inclusion': inclusion
-                },
-                'breadcrumb': ['properties', prop]
-            })
-        FIELD_METADATA[stream_name] = metadata
+        # Update inclusion for extra fields which we need to replicate data
+        if stream_obj.extra_automatic_fields:
+            for field in stream_obj.extra_automatic_fields:
+                mdata_map[('properties', field)]['inclusion'] = 'automatic'
 
-    return SCHEMAS, FIELD_METADATA
+        metadata_list = metadata.to_list(mdata_map)
+        field_metadata[stream_name] = metadata_list
+
+    return schemas, field_metadata

@@ -286,8 +286,37 @@
         "runtime": {
           "type": [
             "null",
-            "string"
-          ]
+            "object"
+          ],
+          "additionalProperties": true,
+          "properties":{
+            "hours":{
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": true,
+              "properties":{
+                "type":{
+                  "type":[
+                    "null",
+                    "string"
+                  ]
+                }
+              }
+            },
+            "days":{
+              "type":[
+                "null",
+                "array"
+              ],
+              "items": {
+                "type": [
+                  "string"
+                ]
+              }
+            }
+          }
         },
         "workflow_title": {
           "type": [

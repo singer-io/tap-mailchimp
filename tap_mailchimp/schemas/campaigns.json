@@ -265,6 +265,17 @@
             "boolean"
           ]
         },
+        "auto_fb_post": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
+        },
         "fb_comments": {
           "type": [
             "null",
@@ -452,6 +463,390 @@
           "type": [
             "null",
             "boolean"
+          ]
+        },
+        "can_cancel": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "status": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "emails_sent": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "emails_canceled": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        }
+      }
+    },
+    "parent_campaign_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
+    "variate_settings": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "winning_combination_id": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "winning_campaign_id": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "winner_criteria": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "wait_time": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "test_size": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "subject_lines": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
+        },
+        "send_times": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
+        },
+        "from_names": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
+        },
+        "reply_to_addresses": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
+        },
+        "contents": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "string"
+            ]
+          }
+        },
+        "combinations": {
+          "type": [
+            "null",
+            "array"
+          ],
+          "items": {
+            "type": [
+              "null",
+              "object"
+            ],
+            "properties": {
+              "id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "subject_line": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "send_time": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "from_name": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "reply_to": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "content_description": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "recipients": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              }
+            }
+          }
+        }
+      }
+    },
+    "rss_opts": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "feed_url": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "frequency": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "schedule": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "hour": {
+              "type": [
+                "null",
+                "integer"
+              ]
+            },
+            "daily_send": {
+              "type": [
+                "null",
+                "object"
+              ],
+              "additionalProperties": false,
+              "properties": {
+                "sunday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "monday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "tuesday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "wednesday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "thursday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "friday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                },
+                "saturday": {
+                  "type": [
+                    "null",
+                    "boolean"
+                  ]
+                }
+              }
+            },
+            "weekly_send_day": {
+              "type": [
+                "null",
+                "string"
+              ]
+            },
+            "monthly_send_Date": {
+              "type": [
+                "null",
+                "number"
+              ]
+            }
+          }
+        },
+        "last_sent": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "constrain_rss_img": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      }
+    },
+    "ab_split_opts": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "split_test": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "pick_winner": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "wait_units": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "wait_time": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "split_size": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "from_name_a": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "from_name_b": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "reply_email_a": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "reply_email_b": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "subject_a": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "subject_b": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "send_time_a": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "send_time_b": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "send_time_winner": {
+          "type": [
+            "null",
+            "string"
           ]
         }
       }
