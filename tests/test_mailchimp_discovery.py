@@ -100,7 +100,7 @@ class MailchimpDiscover(MailchimpBaseTest):
                 self.assertEqual(
                     len(actual_fields),
                     len(set(actual_fields)),
-                    msg=f"duplicates in the fields retrieved",
+                    msg="duplicates in the fields retrieved",
                 )
 
                 # Verify the primary key(s) match expectations

@@ -39,8 +39,8 @@ class TestBackoff(unittest.TestCase):
         """Test case to verify backoff for 'get' works as expected."""
 
         mocked_request.side_effect = test_exception("exception")
-        with self.assertRaises(test_exception) as e:
-            response_json = self.mailchimp_client.get(self.path)
+        with self.assertRaises(test_exception):
+            self.mailchimp_client.get(self.path)
         self.assertEqual(mocked_request.call_count, count)
 
     @parameterized.expand(
@@ -57,6 +57,6 @@ class TestBackoff(unittest.TestCase):
         """Test case to verify backoff for 'post' works as expected."""
 
         mocked_request.side_effect = test_exception("exception")
-        with self.assertRaises(test_exception) as e:
+        with self.assertRaises(test_exception):
             self.mailchimp_client.post(self.path)
         self.assertEqual(mocked_request.call_count, count)
