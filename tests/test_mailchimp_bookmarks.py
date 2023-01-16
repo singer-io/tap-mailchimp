@@ -1,7 +1,7 @@
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 from base import MailchimpBaseTest
-from tap_tester import menagerie
+from tap_tester import menagerie, LOGGER
 
 
 class MailchimpBookMark(MailchimpBaseTest):

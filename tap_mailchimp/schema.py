@@ -40,6 +40,11 @@ def get_schemas():
             for replication_key in stream_obj.replication_keys:
                 mdata_map[('properties', replication_key)]['inclusion'] = 'automatic'
 
+        # Update inclusion for extra fields which we need to replicate data
+        if stream_obj.extra_automatic_fields:
+            for field in stream_obj.extra_automatic_fields:
+                mdata_map[('properties', field)]['inclusion'] = 'automatic'
+
         metadata_list = metadata.to_list(mdata_map)
         field_metadata[stream_name] = metadata_list
 

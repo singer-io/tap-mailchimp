@@ -157,10 +157,25 @@ class StreamsTest(unittest.TestCase):
         '''
             Test case to verify that 'activity' field in records is transformed correctly.
         '''
+        # Mailchimp client
+        client = MailchimpClient(config={})
 
-        transformed_record = streams.transform_activities(records=test_value1)
+        # 'reports_email_activity' stream object
+        stream = streams.ReportEmailActivity(
+            state={},
+            client=client,
+            config={},
+            catalog=Catalog('reports_email_activity'),
+            selected_stream_names=['reports_email_activity'],
+            child_streams_to_sync=[]
+        )
 
-        self.assertEqual(list(transformed_record), test_value2)
+        transformed_record = list(stream.transform_activities(records=test_value1))
+        for record in transformed_record:
+            # Remove the hash used for PK generation
+            record.pop("_sdc_record_hash")
+
+        self.assertEqual(transformed_record, test_value2)
 
     def test_nested_set(self):
         '''
