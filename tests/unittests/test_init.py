@@ -26,7 +26,7 @@ class TestInit(unittest.TestCase):
         with self.assertRaises(Exception) as e:
             do_discover(client=self.client)
 
-        self.assertEqual(str(e.exception), "Error testing Mailchimp authentication")
+        self.assertEqual(str(e.exception), "Error testing Mailchimp authentication. Error: Exception: `access_token` or `api_key` required")
 
     @mock.patch("json.dump")
     @mock.patch("tap_mailchimp.discover", return_value=Catalog(stream_name="test_stream"))
