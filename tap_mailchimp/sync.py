@@ -1,11 +1,12 @@
 import singer
+
 from tap_mailchimp.streams import STREAMS
 
 LOGGER = singer.get_logger()
 
 
 def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
-    """Return streams to sync"""
+    """Return streams to sync."""
     # List of top-level stream names to sync
     streams_to_sync_names = []
     # List of child stream names to sync if the grandchild is selected and the child is not selected
@@ -29,9 +30,10 @@ def get_streams_to_sync(catalog, selected_streams, selected_stream_names):
         streams_to_sync.append(catalog.get_stream(stream))
     return streams_to_sync, child_streams_to_sync
 
+
 # Function for sync mode
 def sync(client, catalog, state, config):
-    """Function to sync records for all the selected streams"""
+    """Function to sync records for all the selected streams."""
 
     selected_streams = list(catalog.get_selected_streams(state))
     selected_stream_names = []
@@ -45,10 +47,11 @@ def sync(client, catalog, state, config):
     streams_to_sync, child_streams_to_sync = get_streams_to_sync(catalog, selected_streams, selected_stream_names)
     for stream in streams_to_sync:
         stream_id = stream.tap_stream_id
-        stream_object = STREAMS.get(stream_id)(state, client, config, catalog, \
-            selected_stream_names, child_streams_to_sync)
+        stream_object = STREAMS.get(stream_id)(
+            state, client, config, catalog, selected_stream_names, child_streams_to_sync
+        )
 
-        LOGGER.info('START Syncing: %s', stream_id)
+        LOGGER.info("START Syncing: %s", stream_id)
 
         # Set currently syncing stream
         state = singer.set_currently_syncing(state, stream_id)
@@ -56,7 +59,7 @@ def sync(client, catalog, state, config):
 
         stream_object.sync()
 
-        LOGGER.info('FINISHED Syncing: %s', stream_id)
+        LOGGER.info("FINISHED Syncing: %s", stream_id)
 
     # remove currently_syncing at the end of the sync
     state = singer.set_currently_syncing(state, None)

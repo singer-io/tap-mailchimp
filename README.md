@@ -27,13 +27,13 @@ Config properties:
 | -------- | -------- | ------- | ----------- |
 | `access_token` | See note. | "20208d81..." | The access token from the OAuth2 flow. |
 | `api_key` | See note. | "ac0ad1..." | The Mailchimp API key, if using API key auth instead of OAuth. |
-| `dc` | See note. | "us14" | The Mailchimp data center, only requried when using API key auth. |
+| `dc` | See note. | "us14" | The Mailchimp data center, only required when using API key auth. |
 | `start_date` | Y | "2010-01-01T00:00:00Z" | The default start date to use for date modified replication, when available. |
 | `user_agent` | N | "Vandelay Industries ETL Runner" | The user agent to send on every request. |
 | `request_timeout` | N | 300 | Time for which request should wait to get response. |
 | `chunk_size` | N | 100 | The length of a batch for 'reports_email_activity'. |
 
-## Usage 
+## Usage
 
 To run `tap-mailchimp` with the configuration file, use this command:
 

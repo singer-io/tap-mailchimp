@@ -5,10 +5,9 @@ from tap_tester import connections, runner
 
 
 class MailchimpAutomaticFields(MailchimpBaseTest):
-    """
-    Ensure running the tap with all streams selected and all fields deselected results in the replication of just the
-    primary keys and replication keys (automatic fields).
-    """
+    """Ensure running the tap with all streams selected and all fields
+    deselected results in the replication of just the primary keys and
+    replication keys (automatic fields)."""
 
     def name(self):
         return "tap_tester_mailchimp_automatic_fields_test"
@@ -79,6 +78,8 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
                     self.assertSetEqual(expected_keys, actual_keys)
 
                 # Verify that all replicated records have unique primary key values.
-                self.assertEqual(len(primary_keys_list),
+                self.assertEqual(
+                    len(primary_keys_list),
                     len(unique_primary_keys_list),
-                    msg="Replicated record does not have unique primary key values.")
+                    msg="Replicated record does not have unique primary key values.",
+                )

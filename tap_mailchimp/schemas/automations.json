@@ -289,24 +289,24 @@
             "object"
           ],
           "additionalProperties": true,
-          "properties":{
-            "hours":{
+          "properties": {
+            "hours": {
               "type": [
                 "null",
                 "object"
               ],
               "additionalProperties": true,
-              "properties":{
-                "type":{
-                  "type":[
+              "properties": {
+                "type": {
+                  "type": [
                     "null",
                     "string"
                   ]
                 }
               }
             },
-            "days":{
-              "type":[
+            "days": {
+              "type": [
                 "null",
                 "array"
               ],
