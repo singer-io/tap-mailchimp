@@ -10,7 +10,7 @@ setup(
     url="https://singer.io",
     classifiers=["Programming Language :: Python :: 3 :: Only"],
     py_modules=["tap_mailchimp"],
-    install_requires=["backoff==2.2.1", "requests==2.28.2", "singer-python==5.13.0"],
+    install_requires=["backoff==1.8.0", "requests==2.20.1", "singer-python==5.9.0"],
     extras_require={
         "dev": [
             "pylint==2.5.3",
