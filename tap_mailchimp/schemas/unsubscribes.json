@@ -15,6 +15,10 @@
       ]
     },
     "merge_fields": {
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "vip": {
       "type": [

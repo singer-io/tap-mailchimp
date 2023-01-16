@@ -32,6 +32,10 @@
       ]
     },
     "merge_fields": {
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "stats": {
       "type": [
@@ -64,7 +68,8 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "format": "date-time"
     },
     "ip_opt": {
       "type": [
@@ -111,6 +116,10 @@
       ]
     },
     "interests": {
+      "type": [
+        "null",
+        "object"
+      ]
     },
     "location": {
       "type": [
@@ -162,6 +171,40 @@
         "null",
         "string"
       ]
+    },
+    "last_note": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "note_id": {
+          "type": [
+            "null",
+            "integer"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time"
+        },
+        "created_by": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "note": {
+          "type": [
+            "null",
+            "string"
+          ]
+        }
+      }
     }
   }
 }

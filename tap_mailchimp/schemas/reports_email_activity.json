@@ -2,6 +2,12 @@
   "type": "object",
   "additionalProperties": false,
   "properties": {
+    "_sdc_record_hash": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "campaign_id": {
       "type": [
         "string"

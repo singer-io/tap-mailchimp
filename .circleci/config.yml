@@ -12,7 +12,7 @@ jobs:
             source /usr/local/share/virtualenvs/tap-mailchimp/bin/activate
             pip install -U 'pip<19.2' 'setuptools<51.0.0'
             pip install .[dev]
-            pip install coverage
+            pip install coverage parameterized
       - run:
           name: 'pylint'
           command: |
@@ -37,7 +37,7 @@ jobs:
       - run:
           name: 'Integration Tests'
           command: |
-            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/sandbox dev_env.sh
+            aws s3 cp s3://com-stitchdata-dev-deployment-assets/environments/tap-tester/tap_tester_sandbox dev_env.sh
             source dev_env.sh
             source /usr/local/share/virtualenvs/tap-tester/bin/activate
             run-test --tap=tap-mailchimp tests
@@ -46,7 +46,9 @@ workflows:
   commit:
     jobs:
       - build:
-          context: circleci-user
+          context: 
+          - circleci-user
+          - tap-tester-user
   build_daily:
     triggers:
       - schedule:
@@ -57,4 +59,6 @@ workflows:
                 - master
     jobs:
       - build:
-          context: circleci-user
+          context: 
+          - circleci-user
+          - tap-tester-user
