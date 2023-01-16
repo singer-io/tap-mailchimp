@@ -17,7 +17,6 @@ def get_mock_http_response(*args, **kwargs):
     response._content = contents.encode()
     return response
 
-
 @patch("time.sleep")
 @patch("requests.Session.request", side_effect=requests.exceptions.Timeout)
 class TestRequestTimeoutsBackoff(unittest.TestCase):
@@ -29,17 +28,15 @@ class TestRequestTimeoutsBackoff(unittest.TestCase):
         # Initialize MailchimpClient object
         client = MailchimpClient(config={"access_token": "as"})
         try:
-            client.request(
-                method="GET",
+            client.get(
                 path="http://test",
                 url="base_url"
             )
         except requests.exceptions.Timeout:
             pass
 
-        # Verify that requests.Session.request is called 5 times
-        self.assertEqual(mocked_request.call_count, 5)
-
+        # Verify that requests.Session.request is called 6 times
+        self.assertEqual(mocked_request.call_count, 6)
 
 @patch("requests.Session.request", side_effect=get_mock_http_response)
 class TestRequestTimeoutsValue(unittest.TestCase):
