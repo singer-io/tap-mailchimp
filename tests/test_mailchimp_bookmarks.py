@@ -1,7 +1,7 @@
 import tap_tester.connections as connections
 import tap_tester.runner as runner
 from base import MailchimpBaseTest
-from tap_tester import menagerie, LOGGER
+from tap_tester import menagerie
 
 
 class MailchimpBookMark(MailchimpBaseTest):
@@ -12,21 +12,14 @@ class MailchimpBookMark(MailchimpBaseTest):
 
     def test_run(self):
         """
-        Verify that for each stream you can do a sync that records bookmarks.
-        That a second sync respects the bookmark
-            All data of the second sync is >= the bookmark from the first sync
-            The number of records in the 2nd sync is less than the first (This assumes that
-                new data added to the stream is done at a rate slow enough that you haven't
-                doubled the amount of data from the start date to the first sync between
-                the first sync and second sync run in this test)
-        Verify that for the full table stream, all data replicated in sync 1 is replicated again in sync 2.
-        PREREQUISITE
-        For EACH stream that is incrementally replicated, there are multiple rows of data with
-            different values for the replication key
+        - Verify for each incremental stream you can do a sync which records bookmarks, and that the format matches expectations.
+        - Verify that a bookmark doesn't exist for full table streams.
+        - Verify the bookmark is the max value sent to the target for the a given replication key.
+        - Verify 2nd sync respects the bookmark. All data of the 2nd sync is >= the bookmark from the first sync The number of records in the 2nd sync is less then the first
         """
 
         # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.
-        expected_streams = self.expected_check_streams() - {"automations"}
+        expected_streams = self.expected_streams() - {"automations"}
 
         expected_replication_keys = self.expected_replication_keys()
         expected_replication_methods = self.expected_replication_method()
@@ -69,7 +62,7 @@ class MailchimpBookMark(MailchimpBaseTest):
                 "reports_email_activity": {  # Verifying bookmark for single campaign's 'reports_email_activity'
                     "32e6edcecb": "2016-05-15T18:57:16.000000Z"
                 },
-                "unsubscribes": { # Verifying bookmark for single campaign's 'unsubscribers'
+                "unsubscribes": {  # Verifying bookmark for single campaign's 'unsubscribers'
                     "5b483c58de": {"timestamp": "2014-10-23T23:37:21.000000Z"}
                 },
             }
@@ -120,6 +113,13 @@ class MailchimpBookMark(MailchimpBaseTest):
                     second_sync_bookmarks.get("bookmarks"), stream_bookmark_path
                 )
 
+                # Verify at least 1 record was replicated in the second sync
+                self.assertGreater(
+                    second_sync_count,
+                    0,
+                    msg=f"We are not fully testing bookmarking for {stream}",
+                )
+                
                 if expected_replication_method == self.INCREMENTAL:
                     # Get parent key in child's record
                     parent_id = (
@@ -167,6 +167,13 @@ class MailchimpBookMark(MailchimpBaseTest):
                     # Verify the second sync bookmark is Equal to the first sync bookmark
                     self.assertEqual(second_bookmark_value, first_bookmark_value)
 
+                    # Verify that you get less data the 2nd time around
+                    self.assertLess(
+                            second_sync_count,
+                            first_sync_count,
+                            msg="second sync didn't have less records, bookmark usage not verified",
+                        )
+
                     for record in first_sync_messages:
 
                         # Verify the first sync bookmark value is the max replication key value for a given stream
@@ -198,13 +205,6 @@ class MailchimpBookMark(MailchimpBaseTest):
                             msg="Second sync bookmark was set incorrectly, a record with a greater replication-key value was synced.",
                         )
 
-                    # Verify that you get less data the 2nd time around
-                    self.assertLess(
-                        second_sync_count,
-                        first_sync_count,
-                        msg="second sync didn't have less records, bookmark usage not verified",
-                    )
-
                 elif expected_replication_method == self.FULL_TABLE:
 
                     # Verify the syncs do not set a bookmark for full table streams
@@ -224,10 +224,3 @@ class MailchimpBookMark(MailchimpBaseTest):
                             stream, expected_replication_method
                         )
                     )
-
-                # Verify at least 1 record was replicated in the second sync
-                self.assertGreater(
-                    second_sync_count,
-                    0,
-                    msg="We are not fully testing bookmarking for {}".format(stream),
-                )

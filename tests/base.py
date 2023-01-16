@@ -1,7 +1,8 @@
-import unittest
 import os
-from tap_tester import menagerie, runner, connections, LOGGER
+import unittest
 from datetime import datetime as dt
+
+from tap_tester import LOGGER, connections, menagerie, runner
 
 
 class MailchimpBaseTest(unittest.TestCase):
@@ -21,8 +22,9 @@ class MailchimpBaseTest(unittest.TestCase):
     INCREMENTAL = "INCREMENTAL"
     OBEYS_START_DATE = "obey-start-date"
     BOOKMARK_PATH = "bookmark-path"
-    EXTRA_AUTOMATIC_FIELDS = "extra-automatic-fields"
+    RECORD_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
     BOOKMARK_DATETIME_FORMAT = "%Y-%m-%dT%H:%M:%S.000000Z"
+    EXTRA_AUTOMATIC_FIELDS = "extra-automatic-fields"
     PARENT = "parent-stream"
 
     def tap_name(self):
@@ -72,21 +74,21 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
-                self.PARENT: None
+                self.PARENT: None,
             },
             "campaigns": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
-                self.PARENT: None
+                self.PARENT: None,
             },
             "lists": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
-                self.PARENT: None
+                self.PARENT: None,
             },
             "list_members": {
                 self.PRIMARY_KEYS: {"id", "list_id"},
@@ -94,42 +96,42 @@ class MailchimpBaseTest(unittest.TestCase):
                 self.REPLICATION_KEYS: {"last_changed"},
                 self.OBEYS_START_DATE: True,
                 self.BOOKMARK_PATH: ["lists", "8c775a04fb", "list_members", "datetime"],
-                self.PARENT: "lists"
+                self.PARENT: "lists",
             },
             "list_segments": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
-                self.PARENT: "lists"
+                self.PARENT: "lists",
             },
             "list_segment_members": {
                 self.PRIMARY_KEYS: {"id"},
                 self.REPLICATION_METHOD: self.FULL_TABLE,
                 self.OBEYS_START_DATE: False,
                 self.BOOKMARK_PATH: None,
-                self.PARENT: None
+                self.PARENT: None,
             },
-            'reports_email_activity': {
-                self.PRIMARY_KEYS: {'_sdc_record_hash'},
+            "reports_email_activity": {
+                self.PRIMARY_KEYS: {"_sdc_record_hash"},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.REPLICATION_KEYS: {"timestamp"},
                 self.OBEYS_START_DATE: True,
                 self.BOOKMARK_PATH: ["reports_email_activity", "32e6edcecb"],
                 self.PARENT: "campaigns",
-                self.EXTRA_AUTOMATIC_FIELDS: {'action', 'campaign_id', 'email_id', 'timestamp', 'ip'}
+                self.EXTRA_AUTOMATIC_FIELDS: {"action", "campaign_id", "email_id", "timestamp", "ip"},
             },
             "unsubscribes": {
                 self.PRIMARY_KEYS: {"campaign_id", "email_id"},
                 self.REPLICATION_METHOD: self.INCREMENTAL,
                 self.OBEYS_START_DATE: True,
                 self.REPLICATION_KEYS: {"timestamp"},
-                self.BOOKMARK_PATH: ['unsubscribes', '5b483c58de', 'timestamp'],
-                self.PARENT: "campaigns"
+                self.BOOKMARK_PATH: ["unsubscribes", "5b483c58de", "timestamp"],
+                self.PARENT: "campaigns",
             },
         }
 
-    def expected_check_streams(self):
+    def expected_streams(self):
         """A set of expected stream names"""
         return set(self.expected_metadata().keys())
 
@@ -149,7 +151,7 @@ class MailchimpBaseTest(unittest.TestCase):
         }
 
     def expected_replication_method(self):
-        """Return a dictionary with the key of table name nd value of replication method"""
+        """Return a dictionary with the key of table name and value of replication method"""
         return {
             table: properties.get(self.REPLICATION_METHOD, set())
             for table, properties in self.expected_metadata().items()
@@ -162,19 +164,15 @@ class MailchimpBaseTest(unittest.TestCase):
             for table, properties in self.expected_metadata().items()
         }
 
-    def get_parent(self):
-        """Return the parent stream for the stream"""
-        return {
-            table: properties.get(self.PARENT, set())
-            for table, properties in self.expected_metadata().items()
-        }
-
     def expected_automatic_fields(self):
         """Return a dictionary with the key of table name and set of value of automatic(primary key and bookmark field) fields"""
         auto_fields = {}
         for k, v in self.expected_metadata().items():
-            auto_fields[k] = v.get(self.PRIMARY_KEYS, set()) |  v.get(self.REPLICATION_KEYS, set()) | \
-                v.get(self.EXTRA_AUTOMATIC_FIELDS, set())
+            auto_fields[k] = (
+                v.get(self.PRIMARY_KEYS, set())
+                | v.get(self.REPLICATION_KEYS, set())
+                | v.get(self.EXTRA_AUTOMATIC_FIELDS, set())
+            )
         return auto_fields
 
     def run_and_verify_check_mode(self, conn_id):
@@ -199,7 +197,7 @@ class MailchimpBaseTest(unittest.TestCase):
 
         found_catalog_names = set(map(lambda c: c["stream_name"], found_catalogs))
         self.assertSetEqual(
-            self.expected_check_streams(),
+            self.expected_streams(),
             found_catalog_names,
             msg="discovered schemas do not match",
         )
@@ -222,7 +220,7 @@ class MailchimpBaseTest(unittest.TestCase):
         menagerie.verify_sync_exit_status(self, exit_status, sync_job_name)
 
         sync_record_count = runner.examine_target_output_file(
-            self, conn_id, self.expected_check_streams(), self.expected_primary_keys()
+            self, conn_id, self.expected_streams(), self.expected_primary_keys()
         )
 
         self.assertGreater(
@@ -270,9 +268,7 @@ class MailchimpBaseTest(unittest.TestCase):
 
             if select_all_fields:
                 # Verify all fields within each selected stream are selected
-                for field, field_props in (
-                    catalog_entry.get("annotated-schema").get("properties").items()
-                ):
+                for field, field_props in catalog_entry.get("annotated-schema").get("properties").items():
                     field_selected = field_props.get("selected")
                     LOGGER.info(
                         "\tValidating selection on {}.{}: {}".format(
@@ -315,9 +311,7 @@ class MailchimpBaseTest(unittest.TestCase):
             non_selected_properties = []
             if not select_all_fields:
                 # Get a list of all properties so that none are selected
-                non_selected_properties = (
-                    schema.get("annotated-schema", {}).get("properties", {}).keys()
-                )
+                non_selected_properties = schema.get("annotated-schema", {}).get("properties", {}).keys()
 
             connections.select_catalog_and_fields_via_metadata(
                 conn_id, catalog, schema, [], non_selected_properties
@@ -330,8 +324,14 @@ class MailchimpBaseTest(unittest.TestCase):
         date_stripped = dt.strptime(date_value, format)
         return date_stripped
 
+    def get_parent(self):
+        """Return the parent stream for the stream."""
+        return {table: properties.get(self.PARENT, set()) for table, properties in self.expected_metadata().items()}
+
+
+
     def get_bookmark(self, bookmark, path):
-        """Return the bookmark at the specified path from the state file"""
+        """Return the bookmark at the specified path from the state file."""
         if not path:
             return None
 

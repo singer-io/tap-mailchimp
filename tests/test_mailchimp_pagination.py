@@ -1,17 +1,16 @@
 from math import ceil
-from tap_tester import runner, connections
+
 from base import MailchimpBaseTest
+from tap_tester import connections, runner
 
 
 class MailchimpPagination(MailchimpBaseTest):
-    """
-    Ensure tap can replicate multiple pages of data for streams that use pagination.
-    """
+    """Ensure tap can replicate multiple pages of data for streams that use
+    pagination."""
 
     page_size = 2
 
     def name(self):
-        """Returns name of the test"""
         return "tap_tester_mailchimp_pagination_test"
 
     def get_properties(self, original=True):
@@ -22,9 +21,9 @@ class MailchimpPagination(MailchimpBaseTest):
 
     def test_run(self):
         """
-        • Verify that for each stream you can get multiple pages of data.
-        This requires we ensure more than 1 page of data exists at all times for any given stream.
-        • Verify by pks that the data replicated matches the data we expect.
+        - Verify that for each stream you can get multiple pages of data.
+          This requires we ensure more than 1 page of data exists at all times for any given stream.
+        - Verify by pks that the data replicated matches the data we expect.
         """
 
         # Need to upgrade the mailchimp plan for collecting 'automations' stream data. Hence, skipping the stream for now.
@@ -41,10 +40,8 @@ class MailchimpPagination(MailchimpBaseTest):
 
         # Verify all the streams are either skipped or tested
         self.assertEqual(
-            self.expected_check_streams() - streams_to_skip,
-            streams_with_2_page_size
-            | streams_with_250_page_size
-            | streams_with_1000_page_size,
+            self.expected_streams() - streams_to_skip,
+            streams_with_2_page_size | streams_with_250_page_size | streams_with_1000_page_size,
         )
 
         self.run_test(streams_with_2_page_size, 2)
@@ -55,7 +52,7 @@ class MailchimpPagination(MailchimpBaseTest):
 
     def run_test(self, streams, page_size):
 
-        """Running the tap with different page size"""
+        """Running the tap with different page size."""
         self.page_size = page_size
         expected_streams = streams
         conn_id = connections.ensure_connection(self)
@@ -63,14 +60,10 @@ class MailchimpPagination(MailchimpBaseTest):
 
         # Table and field selection
         test_catalogs_all_fields = [
-            catalog
-            for catalog in found_catalogs
-            if catalog.get("tap_stream_id") in expected_streams
+            catalog for catalog in found_catalogs if catalog.get("tap_stream_id") in expected_streams
         ]
 
-        self.perform_and_verify_table_and_field_selection(
-            conn_id, test_catalogs_all_fields
-        )
+        self.perform_and_verify_table_and_field_selection(conn_id, test_catalogs_all_fields)
 
         record_count_by_stream = self.run_and_verify_sync(conn_id)
 
@@ -87,13 +80,10 @@ class MailchimpPagination(MailchimpBaseTest):
                 # Expected values
                 expected_primary_keys = self.expected_primary_keys()[stream]
 
-                # Collect information for assertions from syncs 1 & 2 base on expected values
+                # Collect information for assertions from syncs 1 & 2 based on expected values
                 record_count_sync = record_count_by_stream.get(stream, 0)
                 primary_keys_list = [
-                    tuple(
-                        message.get("data").get(expected_pk)
-                        for expected_pk in expected_primary_keys
-                    )
+                    tuple(message.get("data").get(expected_pk) for expected_pk in expected_primary_keys)
                     for message in synced_records.get(stream).get("messages")
                     if message.get("action") == "upsert"
                 ]

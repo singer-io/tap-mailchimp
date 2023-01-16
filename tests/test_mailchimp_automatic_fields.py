@@ -1,6 +1,7 @@
 import json
-from tap_tester import runner, connections
+
 from base import MailchimpBaseTest
+from tap_tester import connections, runner
 
 
 class MailchimpAutomaticFields(MailchimpBaseTest):
@@ -10,17 +11,16 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
     """
 
     def name(self):
-        """Returns name of the test"""
         return "tap_tester_mailchimp_automatic_fields_test"
 
     def test_run(self):
         """
-        Verify we can deselect all fields except when inclusion=automatic, which is handled by base.py methods
-        Verify that only the automatic fields are sent to the target.
-        Verify that all replicated records have unique primary key values.
+        - Verify that when no fields are selected and only the automatic fields are replicated.
+        - Verify that all replicated records have unique primary key values.
+        - Verify that you get records for all streams
         """
 
-        expected_streams = self.expected_check_streams()
+        expected_streams = self.expected_streams()
 
         # Need to upgrade mailchimp plan for collecting 'automations' stream data. Hence, skipping stream for now.
         expected_streams = expected_streams - {"automations"}
@@ -31,9 +31,7 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
 
         # Table and field selection
         test_catalogs_automatic_fields = [
-            catalog
-            for catalog in found_catalogs
-            if catalog.get("tap_stream_id") in expected_streams
+            catalog for catalog in found_catalogs if catalog.get("tap_stream_id") in expected_streams
         ]
 
         # Select all streams and no fields within streams
@@ -53,15 +51,15 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
 
                 # Collect actual values
                 data = synced_records.get(stream, {})
-                record_messages_keys = [set(row['data'].keys()) for row in data.get('messages', [])]
-                records = [message.get("data") for message in data.get('messages', []) if message.get('action') == 'upsert']
+                record_messages_keys = [set(row["data"].keys()) for row in data.get("messages", [])]
+                records = [
+                    message.get("data") for message in data.get("messages", []) if message.get("action") == "upsert"
+                ]
 
-                # Remove duplicate records
-                # NOTE: 'list_segment_members' included data about members from different segments of the lists. There a
-                # possibility that a user can be a member of multiple segments. Thus, there will be duplication of records.
-                # Reference: https://jira.talendforge.org/browse/TDL-20303
-                primary_keys_list = [tuple(message.get(expected_pk) for expected_pk in expected_primary_keys)
-                                     for message in [json.loads(t) for t in {json.dumps(d) for d in records}]]
+                primary_keys_list = [
+                    tuple(message.get(expected_pk) for expected_pk in expected_primary_keys)
+                    for message in [json.loads(t) for t in {json.dumps(d) for d in records}]
+                ]
                 unique_primary_keys_list = set(primary_keys_list)
 
                 # Verify that you get some records for each stream
@@ -73,7 +71,8 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
 
                 # Verify that only the automatic fields are sent to the target
                 for actual_keys in record_messages_keys:
-                    # Not all records include 'ip'. But for our dataset 'ip' as differentiating field among non-similar records
+                    # Not all records include 'ip'.
+                    # But for our dataset 'ip' as differentiating field among non-similar records
                     if stream == "reports_email_activity":
                         expected_keys -= {"ip"}
                         actual_keys -= {"ip"}
@@ -81,5 +80,5 @@ class MailchimpAutomaticFields(MailchimpBaseTest):
 
                 # Verify that all replicated records have unique primary key values.
                 self.assertEqual(len(primary_keys_list),
-                                 len(unique_primary_keys_list),
-                                 msg="Replicated record does not have unique primary key values.")
+                    len(unique_primary_keys_list),
+                    msg="Replicated record does not have unique primary key values.")
