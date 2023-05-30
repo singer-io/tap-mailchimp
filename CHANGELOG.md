@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.1.4
+  * Dependabot update [#60](https://github.com/singer-io/tap-mailchimp/pull/60)
+
 ## 1 1 3
   * Request Timeout Implementation [#43](https://github.com/singer-io/tap-mailchimp/pull/43)
 ## 1.1.2
