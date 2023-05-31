@@ -452,13 +452,15 @@ def check_and_resume_email_activity_batch(client, catalog, state, start_date):
         campaigns = [] # Don't need a list of campaigns if resuming
         sync_email_activity(client, catalog, state, start_date, campaigns, batch_id)
 
-def fetch_recent_campaigns(client, catalog, state, endpoint_config):
+def fetch_recent_campaigns(client, catalog, state, campaigns_config):
     return sync_endpoint(client, catalog, state,
-                        client.adjusted_start_date,  # start date
-                        "campaigns", False, endpoint_config.get('path'),
-                        endpoint_config.get( 'data_path', "campaigns"),
-                        endpoint_config.get('params', {}), ["campaigns"],  "since_send_time",
-                        endpoint_config.get('bookmark_field'))
+                         client.adjusted_start_date,  # adjusted start date
+                         "campaigns", False, # persist set to false as we want to only fetch the campaign ID'S
+                         campaigns_config.get('path'),
+                         campaigns_config.get( 'data_path', "campaigns"),
+                         campaigns_config.get('params', {}), ["campaigns"], 
+                         "since_send_time", #new bookmark_query_field
+                         None)
 
 def sync_reports_email_activity(streams_to_sync, id_bag, client, catalog, state, start_date, campaign_config):
     should_stream, _ = should_sync_stream(
