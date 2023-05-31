@@ -455,10 +455,10 @@ def check_and_resume_email_activity_batch(client, catalog, state, start_date):
 def fetch_recent_campaigns(client, catalog, state, campaigns_config):
     return sync_endpoint(client, catalog, state,
                          client.adjusted_start_date,  # adjusted start date
-                         "campaigns", False, # persist set to false as we want to only fetch the campaign ID'S
+                         "campaigns", False, # persist set to false (fetch campaign id's only)
                          campaigns_config.get('path'),
                          campaigns_config.get( 'data_path', "campaigns"),
-                         campaigns_config.get('params', {}), ["campaigns"], 
+                         campaigns_config.get('params', {}), ["campaigns"],
                          "since_send_time", #new bookmark_query_field
                          None)
 

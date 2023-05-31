@@ -13,6 +13,7 @@ class ClientRateLimitError(Exception):
 class Server5xxError(Exception):
     pass
 
+# pylint: disable=R0902
 class MailchimpClient:
     def __init__(self, config):
         self.__user_agent = config.get('user_agent')
@@ -23,9 +24,13 @@ class MailchimpClient:
         self.page_size = int(config.get('page_size', '1000'))
 
         # performs date-window calculation for fetching campaigns
-        date_window_duration = int(config.get('date_window', '-1'))
-        self.adjusted_start_date = False if date_window_duration == -1 else \
-            (singer.utils.now().date() - singer.utils.datetime.timedelta(days = date_window_duration))
+        try:
+            date_window_duration = int(config.get('date_window', 0))
+            self.adjusted_start_date = False if date_window_duration == 0 else \
+                (singer.utils.now().date() - singer.utils.datetime.timedelta(days = date_window_duration))
+        except ValueError:
+            LOGGER.info("Invalid Value: %s, for date windowing", config.get('date_window', 0))
+            self.adjusted_start_date = False
         # Set request timeout to config param `request_timeout` value.
         # If value is 0,"0","" or not passed then it set default to 300 seconds.
         config_request_timeout = config.get('request_timeout')
