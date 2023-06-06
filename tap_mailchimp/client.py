@@ -29,7 +29,8 @@ class MailchimpClient:
             self.adjusted_start_date = False if date_window_duration == 0 else \
                 (singer.utils.now().date() - singer.utils.datetime.timedelta(days = date_window_duration))
         except ValueError:
-            LOGGER.info("Invalid Value: %s, for date windowing", config.get('date_window', 0))
+            LOGGER.critical("Invalid Value: %s, for date windowing", config.get('date_window', 0))
+            LOGGER.critical("Date windoing disabled")
             self.adjusted_start_date = False
         # Set request timeout to config param `request_timeout` value.
         # If value is 0,"0","" or not passed then it set default to 300 seconds.
