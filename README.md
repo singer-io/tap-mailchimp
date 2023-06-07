@@ -31,7 +31,7 @@ Config properties:
 | `start_date` | Y | "2010-01-01T00:00:00Z" | The default start date to use for date modified replication, when available. |
 | `user_agent` | N | "Vandelay Industries ETL Runner" | The user agent to send on every request. |
 | `request_timeout` | N | 300 | Time for which request should wait to get response. |
-| `date_window` | N | 30 | Used to fetch campaigns that are sent in the last `x` days to retrive `reports_email_activity` stream |
+| `email_activity_date_window` | N | 30 | Used to fetch campaigns that are sent in the last `x` days to retrive `reports_email_activity` stream |
 
 ## Usage 
 

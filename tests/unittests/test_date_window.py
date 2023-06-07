@@ -28,7 +28,7 @@ class TestDateWindowConfig(unittest.TestCase):
             Verify if date_windowing is disabled if bool value is passed
         """
         # Initialize MailchimpClient object
-        client = MailchimpClient({'access_token': 'TOKEN',"date_window":False})
+        client = MailchimpClient({'access_token': 'TOKEN',"email_activity_date_window":False})
         self.assertEqual(client.adjusted_start_date,False)
 
     def test_datewindow_disabled_num_val(self):
@@ -36,7 +36,7 @@ class TestDateWindowConfig(unittest.TestCase):
             Verify if date_window is disabled if 0 value is passed
         """
         # Initialize MailchimpClient object
-        client = MailchimpClient({'access_token': 'TOKEN',"date_window":0})
+        client = MailchimpClient({'access_token': 'TOKEN',"email_activity_date_window":0})
         self.assertEqual(client.adjusted_start_date,False)
 
     def test_datewindow_enabled_num_val(self):
@@ -44,7 +44,7 @@ class TestDateWindowConfig(unittest.TestCase):
             Verify if date_window is enabled if num value is passed
         """
         # Initialize MailchimpClient object
-        client = MailchimpClient({'access_token': 'TOKEN',"date_window":3})
+        client = MailchimpClient({'access_token': 'TOKEN',"email_activity_date_window":3})
         
         time_diff = datetime.now().date() - client.adjusted_start_date
 
