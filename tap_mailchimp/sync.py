@@ -452,6 +452,39 @@ def check_and_resume_email_activity_batch(client, catalog, state, start_date):
         campaigns = [] # Don't need a list of campaigns if resuming
         sync_email_activity(client, catalog, state, start_date, campaigns, batch_id)
 
+def fetch_recent_campaigns(client, catalog, state, campaigns_config):
+    return sync_endpoint(client, catalog, state,
+                         client.adjusted_start_date,  # adjusted start date
+                         "campaigns", False, # persist set to false (fetch campaign id's only)
+                         campaigns_config.get('path'),
+                         campaigns_config.get( 'data_path', "campaigns"),
+                         campaigns_config.get('params', {}), ["campaigns"],
+                         "since_send_time", #new bookmark_query_field
+                         None)
+
+def sync_reports_email_activity(streams_to_sync, id_bag, client, catalog, state, start_date, campaign_config):
+    should_stream, _ = should_sync_stream(
+        streams_to_sync, [], 'reports_email_activity')
+    if client.adjusted_start_date:
+        LOGGER.info("Fetching Campaigns since %s for email activty", client.adjusted_start_date)
+        campaign_ids = fetch_recent_campaigns(client, catalog, state, campaign_config)
+    else:
+        campaign_ids = id_bag.get('campaigns')
+    if should_stream and campaign_ids:
+        # Resume previous batch, if necessary
+        check_and_resume_email_activity_batch(
+            client, catalog, state, start_date)
+        # Chunk batch_ids, bookmarking the chunk number
+        sorted_campaigns = sorted(campaign_ids)
+        chunk_bookmark = int(get_bookmark(
+            state, ['reports_email_activity_next_chunk'], 0))
+        for i, campaign_chunk in enumerate(chunk_campaigns(sorted_campaigns, chunk_bookmark)):
+            write_email_activity_chunk_bookmark(
+                state, chunk_bookmark, i, sorted_campaigns)
+            sync_email_activity(client, catalog, state,
+                                start_date, campaign_chunk)
+        # Start from the beginning next time
+        write_bookmark(state, ['reports_email_activity_next_chunk'], 0)
 ## TODO: is current_stream being updated?
 
 def sync(client, catalog, state, start_date):
@@ -523,19 +556,4 @@ def sync(client, catalog, state, start_date):
                     stream_name,
                     endpoint_config)
 
-    should_stream, _ = should_sync_stream(streams_to_sync,
-                                          [],
-                                          'reports_email_activity')
-    campaign_ids = id_bag.get('campaigns')
-    if should_stream and campaign_ids:
-        # Resume previous batch, if necessary
-        check_and_resume_email_activity_batch(client, catalog, state, start_date)
-        # Chunk batch_ids, bookmarking the chunk number
-        sorted_campaigns = sorted(campaign_ids)
-        chunk_bookmark = int(get_bookmark(state, ['reports_email_activity_next_chunk'], 0))
-        for i, campaign_chunk in enumerate(chunk_campaigns(sorted_campaigns, chunk_bookmark)):
-            write_email_activity_chunk_bookmark(state, chunk_bookmark, i, sorted_campaigns)
-            sync_email_activity(client, catalog, state, start_date, campaign_chunk)
-
-        # Start from the beginning next time
-        write_bookmark(state, ['reports_email_activity_next_chunk'], 0)
+    sync_reports_email_activity(streams_to_sync, id_bag, client, catalog, state, start_date, endpoints["campaigns"])
