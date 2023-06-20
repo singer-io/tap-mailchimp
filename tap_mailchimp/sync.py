@@ -351,6 +351,53 @@ def sync_email_activity(client, catalog, state, start_date, campaign_ids, batch_
 
     write_activity_batch_bookmark(state, None)
 
+def get_campaign(client, endpoint,catalog, state, start_date, campaign_ids, batch_id=None):
+    
+            static_params = endpoint_config.get('params', {})
+            start_dttm = strptime_to_utc(start_date)
+            now_dttm = datetime.now(timezone.utc)
+            end_dttm = start_dttm + timedelta(days=DATE_WINDOW_SIZE)
+            if end_dttm > now_dttm:
+                end_dttm = now_dttm
+
+            while start_dttm < now_dttm:
+                static_params["since_send_time"] = strftime(start_dttm, format_str=DATETIME_FMT)
+                static_params["before_send_time"] = strftime(end_dttm, format_str=DATETIME_FMT)
+
+                stream_ids += sync_endpoint(client,
+                                catalog,
+                                state,
+                                start_date,
+                                stream_name,
+                                should_persist,
+                                path,
+                                endpoint_config.get('data_path', stream_name),
+                                static_params,
+                                bookmark_path,
+                                endpoint_config.get('bookmark_query_field'),
+                                endpoint_config.get('bookmark_field'))
+
+                # Set next date window
+                start_dttm = end_dttm
+                end_dttm = start_dttm + timedelta(days=DATE_WINDOW_SIZE)
+                if end_dttm > now_dttm:
+                    end_dttm = now_dttm
+                # End date window loop
+        else:
+            stream_ids = sync_endpoint(client,
+                                catalog,
+                                state,
+                                start_date,
+                                stream_name,
+                                should_persist,
+                                path,
+                                endpoint_config.get('data_path', stream_name),
+                                endpoint_config.get('params', {}),
+                                bookmark_path,
+                                endpoint_config.get('bookmark_query_field'),
+                                endpoint_config.get('bookmark_field'))
+
+
 def get_selected_streams(catalog):
     selected_streams = set()
     for stream in catalog.streams:
