@@ -25,10 +25,12 @@ class MailchimpClient:
 
         # performs date-window calculation for fetching campaigns
         try:
-            date_window_duration = int(config.get('email_activity_date_window', 0))
+            date_window_duration = int(config.get('email_activity_date_window') or 0)
             self.adjusted_start_date = False if date_window_duration == 0 else \
                 (singer.utils.now().date() - singer.utils.datetime.timedelta(days = date_window_duration))
-        except ValueError:
+        # Raises TypeError for None / Null Value
+        # Raises ValueError for "" / bool value
+        except (ValueError, TypeError):
             LOGGER.info("Invalid Value: %s, for date windowing", config.get('email_activity_date_window', 0))
             LOGGER.critical("Date windowing disabled")
             self.adjusted_start_date = False

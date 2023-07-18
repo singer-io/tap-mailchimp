@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.2.1
+  * Fixed Date Window Validation Error [#62](https://github.com/singer-io/tap-mailchimp/pull/62)
+
 ## 1.2.0
   * Date Window Implementation for reports_email_activity [#61](https://github.com/singer-io/tap-mailchimp/pull/61)
   
