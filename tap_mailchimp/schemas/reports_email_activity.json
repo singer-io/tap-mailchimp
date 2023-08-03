@@ -52,8 +52,7 @@
       "type": [
         "null",
         "string"
-      ],
-      "format": "date-time"
+      ]
     },
     "ip": {
       "type": [
