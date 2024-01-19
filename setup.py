@@ -3,21 +3,21 @@
 from setuptools import setup
 
 setup(name='tap-mailchimp',
-      version='1.2.1',
+      version='1.3.0',
       description='Singer.io tap for extracting data from the Mailchimp API',
       author='Stitch',
       url='https://singer.io',
       classifiers=['Programming Language :: Python :: 3 :: Only'],
       py_modules=['tap_mailchimp'],
       install_requires=[
-          'backoff==1.8.0',
-          'requests==2.20.1',
-          'singer-python==5.9.0'
+          'backoff==2.2.1',
+          'requests==2.31.1',
+          'singer-python==6.0.0'
       ],
       extras_require= {
           'dev': [
               'pylint==2.5.3',
-              'nose==1.3.7',
+              'nose2',
           ]
       },
       entry_points='''

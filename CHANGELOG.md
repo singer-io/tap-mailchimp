@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.0
+  * Updates to run on python 3.11.7 [#65](https://github.com/singer-io/tap-mailchimp/pull/65)
+
 ## 1.2.1
   * Fixed Date Window Validation Error [#62](https://github.com/singer-io/tap-mailchimp/pull/62)
 
