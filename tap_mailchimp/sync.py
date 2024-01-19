@@ -213,7 +213,7 @@ def get_batch_info(client, batch_id):
             endpoint='get_batch_info')
     except HTTPError as e:
         if e.response.status_code == 404:
-            raise BatchExpiredError('Batch {} expired'.format(batch_id))
+            raise BatchExpiredError('Batch {} expired'.format(batch_id)) from e
         raise e
 
 def write_activity_batch_bookmark(state, batch_id):
