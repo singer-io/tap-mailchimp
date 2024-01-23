@@ -10,14 +10,14 @@ jobs:
           command: |
             python3 -m venv /usr/local/share/virtualenvs/tap-mailchimp/
             source /usr/local/share/virtualenvs/tap-mailchimp/bin/activate
-            pip install -U 'pip<19.2' 'setuptools<51.0.0'
+            pip install -U pip 'setuptools<51.0.0'
             pip install .[dev]
             pip install coverage
       - run:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-mailchimp/bin/activate
-            pylint tap_mailchimp --disable 'broad-except,chained-comparison,empty-docstring,fixme,invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring,no-else-raise,no-else-return,too-few-public-methods,too-many-arguments,too-many-branches,too-many-lines,too-many-locals,ungrouped-imports,wrong-spelling-in-comment,wrong-spelling-in-docstring,bad-whitespace'
+            pylint tap_mailchimp --disable 'broad-except,chained-comparison,empty-docstring,fixme,invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring,no-else-raise,no-else-return,too-few-public-methods,too-many-arguments,too-many-branches,too-many-lines,too-many-locals,ungrouped-imports,wrong-spelling-in-comment,wrong-spelling-in-docstring,consider-using-f-string,broad-exception-raised,global-variable-not-assigned'
       - run:
           name: 'JSON Validator'
           command: |
@@ -28,8 +28,8 @@ jobs:
           name: 'Unit Tests'
           command: |
             source /usr/local/share/virtualenvs/tap-mailchimp/bin/activate
-            nosetests --with-coverage --cover-erase --cover-package=tap_mailchimp --cover-html-dir=htmlcov ./tests/unittests
-            coverage html
+            pip install nose2 parameterized nose2[coverage_plugin]>=0.6.5
+            nose2 --with-coverage -v -s tests/unittests
       - store_test_results:
           path: test_output/report.xml
       - store_artifacts:

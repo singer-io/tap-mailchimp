@@ -40,7 +40,7 @@ def get_schemas():
 
     for file_name in file_names:
         stream_name = file_name[:-5]
-        with open(os.path.join(schemas_path, file_name)) as data_file:
+        with open(os.path.join(schemas_path, file_name), encoding='UTF-8') as data_file:
             schema = json.load(data_file)
 
         SCHEMAS[stream_name] = schema
