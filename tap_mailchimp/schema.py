@@ -15,7 +15,8 @@ PKS = {
         'campaign_id',
         'action',
         'email_id',
-        'timestamp'
+        'timestamp',
+        '_sdc_stitch_timestamp',
     ],
     'unsubscribes': ['campaign_id', 'email_id']
 }
