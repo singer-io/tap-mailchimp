@@ -279,6 +279,8 @@ def stream_email_activity(client, catalog, state, archive_url):
             while file:
                 if file.isfile():
                     rawoperations = tar.extractfile(file)
+                    if not rawoperations.read().decode('utf-8'):
+                        continue
                     operations = json.loads(rawoperations.read().decode('utf-8'))
                     for i, operation in enumerate(operations):
                         campaign_id = operation['operation_id']
