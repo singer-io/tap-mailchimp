@@ -279,7 +279,7 @@ def stream_email_activity(client, catalog, state, archive_url):
             while file:
                 if file.isfile():
                     rawoperations = tar.extractfile(file)
-                    if not rawoperations.read().decode('utf-8'):
+                    if not rawoperations.read().decode('utf-8').strip():
                         continue
                     operations = json.loads(rawoperations.read().decode('utf-8'))
                     for i, operation in enumerate(operations):
