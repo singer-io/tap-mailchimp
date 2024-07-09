@@ -287,7 +287,7 @@ def stream_email_activity(client, catalog, state, archive_url):
                             LOGGER.info("Skipping the empty file: %s", file.name)
                             operations = []
                         else:
-                            raise Exception("Invalid file format: %s", file.name) from e
+                            raise Exception("Invalid file format: %s" % file.name) from e
 
                     for i, operation in enumerate(operations):
                         campaign_id = operation['operation_id']
