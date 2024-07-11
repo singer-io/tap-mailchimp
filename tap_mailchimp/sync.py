@@ -278,8 +278,17 @@ def stream_email_activity(client, catalog, state, archive_url):
             file = tar.next()
             while file:
                 if file.isfile():
-                    rawoperations = tar.extractfile(file)
-                    operations = json.loads(rawoperations.read().decode('utf-8'))
+                    try:
+                        rawoperations = tar.extractfile(file)
+                        file_content = rawoperations.read().decode('utf-8')
+                        operations = json.loads(file_content)
+                    except json.JSONDecodeError as e:
+                        if e.args[0] == 'Expecting value: line 1 column 1 (char 0)' and len(file_content.strip()) == 0:
+                            LOGGER.info("Skipping the empty file: %s", file.name)
+                            operations = []
+                        else:
+                            raise Exception("Invalid file format: %s" % file.name) from e
+
                     for i, operation in enumerate(operations):
                         campaign_id = operation['operation_id']
                         last_bookmark = state.get('bookmarks', {}).get(stream_name, {}).get(campaign_id)
