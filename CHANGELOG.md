@@ -1,5 +1,8 @@
 # Changelog
 
+## 1.3.1
+  * Fix the JSONDecodeError exception [#66](https://github.com/singer-io/tap-mailchimp/pull/66)
+
 ## 1.3.0
   * Updates to run on python 3.11.7 [#65](https://github.com/singer-io/tap-mailchimp/pull/65)
 
@@ -8,7 +11,7 @@
 
 ## 1.2.0
   * Date Window Implementation for reports_email_activity [#61](https://github.com/singer-io/tap-mailchimp/pull/61)
-  
+
 ## 1 1 3
   * Request Timeout Implementation [#43](https://github.com/singer-io/tap-mailchimp/pull/43)
 ## 1.1.2
