@@ -268,6 +268,7 @@ def stream_email_activity(client, catalog, state, archive_url):
                     new_activity = dict(record_template)
                     for key, value in activity.items():
                         new_activity[key] = value
+                    new_activity['_sdc_stitch_timestamp'] = str(singer.utils.now())
                     yield new_activity
 
     write_schema(catalog, stream_name)
