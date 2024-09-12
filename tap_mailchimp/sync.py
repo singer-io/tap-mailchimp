@@ -147,6 +147,48 @@ def sync_endpoint(client,
 
     return ids
 
+def sync_list_members(client,
+                      catalog,
+                      state,
+                      start_date,
+                      streams_to_sync,
+                      stream_name,
+                      endpoint_config,
+                      bookmark_path,
+                      id_path):
+    should_stream, should_persist = should_sync_stream(streams_to_sync,
+                                                       [],
+                                                       stream_name)
+    if should_stream:
+        path = endpoint_config.get('path').format(*id_path)
+        sync_endpoint(client,
+                      catalog,
+                      state,
+                      start_date,
+                      stream_name,
+                      should_persist,
+                      path,
+                      endpoint_config.get('data_path', stream_name),
+                      endpoint_config.get('params', {}),
+                      bookmark_path + ["list_members"],
+                      endpoint_config.get('bookmark_query_field'),
+                      endpoint_config.get('bookmark_field'))
+
+        # Get archived members now
+        sync_endpoint(client,
+                      catalog,
+                      state,
+                      start_date,
+                      stream_name,
+                      should_persist,
+                      path,
+                      endpoint_config.get('data_path', stream_name),
+                      {**endpoint_config.get('params', {}), "status": "archived"},
+                      bookmark_path + ["list_members_archived"],
+                      endpoint_config.get('bookmark_query_field'),
+                      endpoint_config.get('bookmark_field'))
+
+
 def get_dependants(endpoint_config):
     dependants = endpoint_config.get('dependants', [])
     for stream_name, child_endpoint_config in endpoint_config.get('children', {}).items():
@@ -195,16 +237,27 @@ def sync_stream(client,
         if children:
             for child_stream_name, child_endpoint_config in children.items():
                 for _id in stream_ids:
-                    sync_stream(client,
-                                catalog,
-                                state,
-                                start_date,
-                                streams_to_sync,
-                                id_bag,
-                                child_stream_name,
-                                child_endpoint_config,
-                                bookmark_path=bookmark_path + [_id, child_stream_name],
-                                id_path=id_path + [_id])
+                    if child_stream_name == 'list_members':
+                        sync_list_members(client,
+                                          catalog,
+                                          state,
+                                          start_date,
+                                          streams_to_sync,
+                                          child_stream_name,
+                                          child_endpoint_config,
+                                          bookmark_path=bookmark_path + [_id],
+                                          id_path=id_path + [_id])
+                    else:
+                        sync_stream(client,
+                                    catalog,
+                                    state,
+                                    start_date,
+                                    streams_to_sync,
+                                    id_bag,
+                                    child_stream_name,
+                                    child_endpoint_config,
+                                    bookmark_path=bookmark_path + [_id, child_stream_name],
+                                    id_path=id_path + [_id])
 
 def get_batch_info(client, batch_id):
     try:
