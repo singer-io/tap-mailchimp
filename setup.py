@@ -16,7 +16,7 @@ setup(name='tap-mailchimp',
       ],
       extras_require= {
           'dev': [
-              'pylint==3.0.3',
+              'pylint',
               'nose2',
           ]
       },
