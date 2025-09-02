@@ -8,15 +8,15 @@ jobs:
       - run:
           name: 'Setup virtual env'
           command: |
-            uv venv --python 3.11 /usr/local/share/virtualenvs/tap-mailchimp/
+            uv venv --python 3.12 /usr/local/share/virtualenvs/tap-mailchimp/
             source /usr/local/share/virtualenvs/tap-mailchimp/bin/activate
-            uv pip install -U pip 'setuptools<51.0.0'
+            uv pip install -U 'setuptools<51.0.0'
             uv pip install .[dev]
       - run:
           name: 'pylint'
           command: |
             source /usr/local/share/virtualenvs/tap-mailchimp/bin/activate
-            pylint tap_mailchimp --disable 'broad-except,chained-comparison,empty-docstring,fixme,invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring,no-else-raise,no-else-return,too-few-public-methods,too-many-arguments,too-many-branches,too-many-lines,too-many-locals,ungrouped-imports,wrong-spelling-in-comment,wrong-spelling-in-docstring,consider-using-f-string,broad-exception-raised,global-variable-not-assigned'
+            pylint tap_mailchimp --disable 'broad-except,chained-comparison,empty-docstring,fixme,invalid-name,line-too-long,missing-class-docstring,missing-function-docstring,missing-module-docstring,no-else-raise,no-else-return,too-few-public-methods,too-many-arguments,too-many-branches,too-many-lines,too-many-locals,ungrouped-imports,wrong-spelling-in-comment,wrong-spelling-in-docstring,consider-using-f-string,broad-exception-raised,global-variable-not-assigned,too-many-positional-arguments'
       - run:
           name: 'JSON Validator'
           command: |
