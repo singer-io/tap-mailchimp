@@ -31,6 +31,14 @@ REPLICATION_METHODS = {
     'unsubscribes': 'FULL_TABLE'
 }
 
+CHILD_STREAMS = {
+    'list_members': 'lists',
+    'list_segment_members': 'segments',
+    'list_segments': 'lists',
+    'unsubscribes': 'campaigns',
+    'reports_email_activity': 'campaigns'
+}
+
 
 REPLICATION_KEYS = {
     'list_members': ['last_changed'],
