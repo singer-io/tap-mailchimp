@@ -20,6 +20,18 @@ PKS = {
     'unsubscribes': ['campaign_id', 'email_id']
 }
 
+REPLICATION_METHODS = {
+    'automations': 'FULL_TABLE',
+    'campaigns': 'FULL_TABLE',
+    'list_members': 'FULL_TABLE',
+    'list_segment_members': 'FULL_TABLE',
+    'list_segments': 'FULL_TABLE',
+    'lists': 'FULL_TABLE',
+    'reports_email_activity': 'FULL_TABLE',
+    'unsubscribes': 'FULL_TABLE'
+}
+
+
 REPLICATION_KEYS = {
     'list_members': ['last_changed'],
 }
