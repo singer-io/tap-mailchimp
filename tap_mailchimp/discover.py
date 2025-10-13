@@ -5,7 +5,7 @@ from tap_mailchimp.schema import get_schemas, PKS, REPLICATION_METHODS, CHILD_ST
 
 class CustomCatalogEntry(CatalogEntry):
 
-    def __init__(self, *args, forced_replication_method=None,parent_stream_id=None, **kwargs):
+    def __init__(self, *args, forced_replication_method=None, parent_stream_id=None, **kwargs):
         self.forced_replication_method = kwargs.pop('forced-replication-method', forced_replication_method)
         self.parent_stream_id = kwargs.pop('parent-stream-id', parent_stream_id)
 
@@ -34,7 +34,7 @@ def discover():
             tap_stream_id=stream_name,
             key_properties=pk,
             forced_replication_method=REPLICATION_METHODS[stream_name],
-            **({'parent-stream-id': CHILD_STREAMS[stream_name]} if parent_stream_id else {}),
+            **({'parent-stream-id': parent_stream_id} if parent_stream_id else {}),
             schema=schema,
             metadata=metadata
         ))
