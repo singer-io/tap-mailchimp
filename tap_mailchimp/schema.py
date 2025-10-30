@@ -85,7 +85,8 @@ ENDPOINTS = {
                 'replication_method': 'FULL_TABLE',
                 'replication_keys': [],
                 'key_properties': ['campaign_id', 'action', 'email_id', 'timestamp'],
-                'parent': 'campaigns'
+                'parent': 'campaigns',
+                'data_path': 'emails'
             },
         }
     },
