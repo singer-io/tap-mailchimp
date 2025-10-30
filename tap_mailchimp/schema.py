@@ -62,6 +62,7 @@ ENDPOINTS = {
         }
     },
     'campaigns': {
+        'dependants': ['reports_email_activity'],
         'path': '/campaigns',
         'replication_method': 'FULL_TABLE',
         'replication_keys': [],
