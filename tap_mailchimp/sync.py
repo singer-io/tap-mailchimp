@@ -8,6 +8,8 @@ from singer import metrics, metadata, Transformer
 from singer.utils import strptime_to_utc, should_sync_field
 from requests.exceptions import HTTPError
 
+from tap_mailchimp.schema import ENDPOINTS
+
 LOGGER = singer.get_logger()
 
 MIN_RETRY_INTERVAL = 2 # 2 seconds
@@ -507,55 +509,7 @@ def sync(client, catalog, state, start_date):
 
     id_bag = {}
 
-    endpoints = {
-        'lists': {
-            'path': '/lists',
-            'params': {
-                'sort_field': 'date_created',
-                'sort_dir': 'ASC'
-            },
-            'children': {
-                'list_members': {
-                    'path': '/lists/{}/members',
-                    'data_path': 'members',
-                    'bookmark_query_field': 'since_last_changed',
-                    'bookmark_field': 'last_changed'
-                },
-                'list_segments': {
-                    'path': '/lists/{}/segments',
-                    'data_path': 'segments',
-                    'children': {
-                        'list_segment_members': {
-                            'path': '/lists/{}/segments/{}/members',
-                            'data_path': 'members'
-                        }
-                    }
-                }
-            }
-        },
-        'campaigns': {
-            'dependants': [
-                'reports_email_activity'
-            ],
-            'path': '/campaigns',
-            'params': {
-                'status': 'sent',
-                'sort_field': 'send_time',
-                'sort_dir': 'ASC'
-            },
-            'store_ids': True,
-            'children': {
-                'unsubscribes': {
-                    'path': '/reports/{}/unsubscribed'
-                }
-            }
-        },
-        'automations': {
-            'path': '/automations'
-        }
-    }
-
-    for stream_name, endpoint_config in endpoints.items():
+    for stream_name, endpoint_config in ENDPOINTS.items():
         sync_stream(client,
                     catalog,
                     state,
@@ -565,4 +519,4 @@ def sync(client, catalog, state, start_date):
                     stream_name,
                     endpoint_config)
 
-    sync_reports_email_activity(streams_to_sync, id_bag, client, catalog, state, start_date, endpoints["campaigns"])
+    sync_reports_email_activity(streams_to_sync, id_bag, client, catalog, state, start_date, ENDPOINTS["campaigns"])
