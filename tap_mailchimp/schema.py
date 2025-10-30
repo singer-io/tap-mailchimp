@@ -20,29 +20,94 @@ PKS = {
     'unsubscribes': ['campaign_id', 'email_id']
 }
 
-REPLICATION_METHODS = {
-    'automations': 'FULL_TABLE',
-    'campaigns': 'FULL_TABLE',
-    'list_members': 'FULL_TABLE',
-    'list_segment_members': 'FULL_TABLE',
-    'list_segments': 'FULL_TABLE',
-    'lists': 'FULL_TABLE',
-    'reports_email_activity': 'FULL_TABLE',
-    'unsubscribes': 'FULL_TABLE'
+ENDPOINTS = {
+    'lists': {
+        'path': '/lists',
+        'replication_method': 'FULL_TABLE',
+        'replication_keys': [],
+        'key_properties': ['id'],
+        'params': {
+            'sort_field': 'date_created',
+            'sort_dir': 'ASC'
+        },
+        'children': {
+            'list_members': {
+                'path': '/lists/{}/members',
+                'replication_method': 'INCREMENTAL',
+                'replication_keys': ['last_changed'],
+                'key_properties': ['id', 'list_id'],
+                'data_path': 'members',
+                'parent': 'lists',
+                'bookmark_query_field': 'since_last_changed',
+                'bookmark_field': 'last_changed'
+            },
+            'list_segments': {
+                'path': '/lists/{}/segments',
+                'replication_method': 'FULL_TABLE',
+                'replication_keys': [],
+                'key_properties': ['id'],
+                'data_path': 'segments',
+                'parent': 'lists',
+                'children': {
+                    'list_segment_members': {
+                        'path': '/lists/{}/segments/{}/members',
+                        'replication_method': 'FULL_TABLE',
+                        'replication_keys': [],
+                        'key_properties': ['id'],
+                        'parent': 'segments',
+                        'data_path': 'members'
+                    }
+                }
+            }
+        }
+    },
+    'campaigns': {
+        'path': '/campaigns',
+        'replication_method': 'FULL_TABLE',
+        'replication_keys': [],
+        'key_properties': ['id'],
+        'params': {
+            'status': 'sent',
+            'sort_field': 'send_time',
+            'sort_dir': 'ASC'
+        },
+        'store_ids': True,
+        'children': {
+            'unsubscribes': {
+                'path': '/reports/{}/unsubscribed',
+                'replication_method': 'FULL_TABLE',
+                'replication_keys': [],
+                'key_properties': ['campaign_id', 'email_id'],
+                'parent': 'campaigns'
+            },
+            'reports_email_activity': {
+                'path': '/reports/{}/email-activity',
+                'replication_method': 'FULL_TABLE',
+                'replication_keys': [],
+                'key_properties': ['campaign_id', 'action', 'email_id', 'timestamp'],
+                'parent': 'campaigns'
+            },
+        }
+    },
+    'automations': {
+        'path': '/automations',
+        'replication_method': 'FULL_TABLE',
+        'replication_keys': [],
+        'key_properties': ['id']
+    }
 }
 
-CHILD_STREAMS = {
-    'list_members': 'lists',
-    'list_segment_members': 'segments',
-    'list_segments': 'lists',
-    'unsubscribes': 'campaigns',
-    'reports_email_activity': 'campaigns'
-}
-
-
-REPLICATION_KEYS = {
-    'list_members': ['last_changed'],
-}
+def find_stream_config(stream_name, endpoints=None):
+    if endpoints is None:
+        endpoints = ENDPOINTS
+    for name, config in endpoints.items():
+        if name == stream_name:
+            return config
+        if 'children' in config:
+            found = find_stream_config(stream_name, config['children'])
+            if found:
+                return found
+    return None
 
 def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
@@ -64,8 +129,11 @@ def get_schemas():
             schema = json.load(data_file)
 
         SCHEMAS[stream_name] = schema
-        pk = PKS[stream_name]
-        replication_keys = REPLICATION_KEYS.get(stream_name, [])
+        stream_config = find_stream_config(stream_name)
+        pk = stream_config.get('key_properties', [])
+        replication_keys = stream_config.get('replication_keys', [])
+        replication_method = stream_config.get('replication_method', "FULL_TABLE")
+        parent = stream_config.get('parent', None)
 
         metadata = []
         for prop in schema['properties'].keys():
@@ -79,6 +147,16 @@ def get_schemas():
                 },
                 'breadcrumb': ['properties', prop]
             })
+        metadata.append({
+            'metadata': {
+                'inclusion': 'available',
+                'forced-replication-method': replication_method,
+                'valid-replication-keys': replication_keys,
+                **({'parent-tap-stream-id': parent} if parent else {})
+            },
+            'breadcrumb': []
+        })
+
         FIELD_METADATA[stream_name] = metadata
 
     return SCHEMAS, FIELD_METADATA
