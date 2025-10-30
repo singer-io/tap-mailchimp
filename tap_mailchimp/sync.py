@@ -169,7 +169,6 @@ def sync_stream(client,
 
     if endpoint_config is None:
         return
-    
     if not bookmark_path:
         bookmark_path = [stream_name]
     if not id_path:
