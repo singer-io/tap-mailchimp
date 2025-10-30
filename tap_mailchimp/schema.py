@@ -83,14 +83,6 @@ ENDPOINTS = {
             }
         }
     },
-    'reports_email_activity': {
-        'path': '/reports/{}/email-activity',
-        'replication_method': 'FULL_TABLE',
-        'replication_keys': [],
-        'key_properties': ['campaign_id', 'action', 'email_id', 'timestamp'],
-        'parent': 'campaigns',
-        'data_path': 'emails'
-    },
     'automations': {
         'path': '/automations',
         'replication_method': 'FULL_TABLE',
@@ -115,7 +107,7 @@ def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 def get_schemas():
-    global SCHEMAS, FIELD_METADATA # pylint: disable=global-statement
+    global SCHEMAS, FIELD_METADATA
 
     if SCHEMAS:
         return SCHEMAS, FIELD_METADATA
@@ -131,12 +123,18 @@ def get_schemas():
             schema = json.load(data_file)
 
         SCHEMAS[stream_name] = schema
-        stream_config = find_stream_config(stream_name)
-        pk = stream_config.get('key_properties', [])
-        replication_keys = stream_config.get('replication_keys', [])
-        replication_method = stream_config.get('replication_method', "FULL_TABLE")
-        parent = stream_config.get('parent', None)
 
+        stream_config = find_stream_config(stream_name)
+        if stream_config is None:
+            pk = PKS.get(stream_name, [])
+            replication_keys = []
+            replication_method = "FULL_TABLE"
+            parent = 'campaigns' if stream_name == 'reports_email_activity' else None
+        else:
+            pk = stream_config.get('key_properties', [])
+            replication_keys = stream_config.get('replication_keys', [])
+            replication_method = stream_config.get('replication_method', "FULL_TABLE")
+            parent = stream_config.get('parent', None)
         metadata = []
         for prop in schema['properties'].keys():
             if prop in pk or prop in replication_keys:
