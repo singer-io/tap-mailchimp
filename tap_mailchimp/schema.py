@@ -80,16 +80,16 @@ ENDPOINTS = {
                 'replication_keys': [],
                 'key_properties': ['campaign_id', 'email_id'],
                 'parent': 'campaigns'
-            },
-            'reports_email_activity': {
-                'path': '/reports/{}/email-activity',
-                'replication_method': 'FULL_TABLE',
-                'replication_keys': [],
-                'key_properties': ['campaign_id', 'action', 'email_id', 'timestamp'],
-                'parent': 'campaigns',
-                'data_path': 'emails'
-            },
+            }
         }
+    },
+    'reports_email_activity': {
+        'path': '/reports/{}/email-activity',
+        'replication_method': 'FULL_TABLE',
+        'replication_keys': [],
+        'key_properties': ['campaign_id', 'action', 'email_id', 'timestamp'],
+        'parent': 'campaigns',
+        'data_path': 'emails'
     },
     'automations': {
         'path': '/automations',
