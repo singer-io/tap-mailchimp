@@ -146,7 +146,6 @@ def get_schemas():
             })
         metadata.append({
             'metadata': {
-                'inclusion': 'available',
                 'forced-replication-method': replication_method,
                 'valid-replication-keys': replication_keys,
                 **({'parent-tap-stream-id': parent} if parent else {})
