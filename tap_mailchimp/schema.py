@@ -124,17 +124,12 @@ def get_schemas():
 
         SCHEMAS[stream_name] = schema
 
-        stream_config = find_stream_config(stream_name)
-        if stream_config is None:
-            pk = PKS.get(stream_name, [])
-            replication_keys = []
-            replication_method = "FULL_TABLE"
-            parent = 'campaigns' if stream_name == 'reports_email_activity' else None
-        else:
-            pk = stream_config.get('key_properties', [])
-            replication_keys = stream_config.get('replication_keys', [])
-            replication_method = stream_config.get('replication_method', "FULL_TABLE")
-            parent = stream_config.get('parent', None)
+        stream_config = find_stream_config(stream_name) or {}
+        pk = stream_config.get('key_properties', PKS.get(stream_name, []))
+        replication_keys = stream_config.get('replication_keys', [])
+        replication_method = stream_config.get('replication_method', "FULL_TABLE")
+        parent = stream_config.get('parent') or ('campaigns' if stream_name == 'reports_email_activity' else None)
+
         metadata = []
         for prop in schema['properties'].keys():
             if prop in pk or prop in replication_keys:
