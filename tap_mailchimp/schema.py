@@ -92,15 +92,15 @@ ENDPOINTS = {
 }
 
 def find_stream_config(stream_name, endpoints=None):
-    if endpoints is None:
-        endpoints = ENDPOINTS
-    for name, config in endpoints.items():
-        if name == stream_name:
-            return config
-        if 'children' in config:
-            found = find_stream_config(stream_name, config['children'])
-            if found:
-                return found
+    endpoints = endpoints or ENDPOINTS
+    for endpoint_name, endpoint_config in endpoints.items():
+        if endpoint_name == stream_name:
+            return endpoint_config
+        child_endpoints = endpoint_config.get('children')
+        if child_endpoints:
+            child_config = find_stream_config(stream_name, child_endpoints)
+            if child_config:
+                return child_config
     return None
 
 def get_abs_path(path):
