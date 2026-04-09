@@ -43,7 +43,7 @@ def process_records(catalog,
         for record in records:
             if bookmark_field:
                 if max_bookmark_field is None or \
-                   record[bookmark_field] > max_bookmark_field:
+                    record[bookmark_field] > max_bookmark_field:
                     max_bookmark_field = record[bookmark_field]
             if persist:
                 record = transformer.transform(record,
@@ -304,14 +304,18 @@ def stream_email_activity(client, catalog, state, archive_url, campaign_send_tim
                     rawoperations = tar.extractfile(file)
                     operations = json.loads(rawoperations.read().decode('utf-8'))
                     for i, operation in enumerate(operations):
-                        campaign_id = operation['operation_id']
+                        raw_response = operation.get("response", "{}")
+                        try:
+                            response = json.loads(raw_response) if isinstance(raw_response, str) else raw_response
+                        except json.JSONDecodeError:
+                            response = {}
+                        email_activities = response.get("emails") or [{}] 
+                        campaign_id = email_activities[0].get("campaign_id")
                         last_bookmark = state.get('bookmarks', {}).get(stream_name, {}).get(campaign_id)
                         LOGGER.info("reports_email_activity - [batch operation %s] Processing records for campaign %s", i, campaign_id)
                         if operation['status_code'] != 200:
                             failed_campaign_ids.append(campaign_id)
                         else:
-                            response = json.loads(operation['response'])
-                            email_activities = response['emails']
                             campaign_send_time = campaign_send_times.get(campaign_id)
                             max_bookmark_field = process_records(
                                 catalog,
