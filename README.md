@@ -2,6 +2,8 @@
 
 This is a [Singer](https://singer.io) tap that produces JSON-formatted data following the [Singer spec](https://github.com/singer-io/getting-started/blob/master/SPEC.md).
 
+Built with the [Hotglue Singer SDK](https://github.com/hotgluexyz/HotglueSingerSDK) for Singer Taps.
+
 This tap:
 
 - Pulls raw data from [Mailchimp's API](https://developer.mailchimp.com/documentation/mailchimp/reference/overview/)
@@ -27,11 +29,12 @@ Config properties:
 | -------- | -------- | ------- | ----------- |
 | `access_token` | See note. | "20208d81..." | The access token from the OAuth2 flow. |
 | `api_key` | See note. | "ac0ad1..." | The Mailchimp API key, if using API key auth instead of OAuth. |
-| `dc` | See note. | "us14" | The Mailchimp data center, only requried when using API key auth. |
-| `start_date` | Y | "2010-01-01T00:00:00Z" | The default start date to use for date modified replication, when available. |
+| `dc` | See note. | "us14" | The Mailchimp data center, only required when using API key auth. |
+| `start_date` | See note. | "2010-01-01T00:00:00Z" | The default start date to use for date modified replication. Required if `start_date_offset` is not set. |
+| `start_date_offset` | See note. | "P60D" | ISO 8601 duration offset from now to use as start date (e.g. `P60D` for 60 days ago). Overrides `start_date` when set. |
 | `user_agent` | N | "Vandelay Industries ETL Runner" | The user agent to send on every request. |
 
-## Usage 
+## Usage
 
 To run `tap-mailchimp` with the configuration file, use this command:
 
