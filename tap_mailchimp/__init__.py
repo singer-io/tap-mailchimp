@@ -66,6 +66,9 @@ class TapMailchimp(Tap):
     def access_token_support(cls, connector=None):
         return (MailchimpOAuthAuthenticator, None)
 
+    def register_state_from_file(self, state):
+        """State is managed by the legacy singer sync path in run_sync; skip SDK loading."""
+
     def discover_streams(self):
         return []
 
