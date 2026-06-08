@@ -3,6 +3,9 @@
 ## 1.4.0
   * Added replication method and parent child stream relationship [#67](https://github.com/singer-io/tap-mailchimp/pull/67)
 
+## 1.3.3
+  * Bump requests to 2.33.0 for security updates [#72](https://github.com/singer-io/tap-mailchimp/pull/72)
+
 ## 1.3.2
   * Bump dependency versions for twistlock compliance [#67](https://github.com/singer-io/tap-mailchimp/pull/67)
 
