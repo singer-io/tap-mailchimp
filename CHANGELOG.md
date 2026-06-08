@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.0
+  * Exclude 403-forbidden streams from discovery [#73](https://github.com/singer-io/tap-mailchimp/pull/73)
+  * Bump dependencies for compliance
+
 # 1.3.3
   * Bump requests to 2.33.0 for security updates [#72](https://github.com/singer-io/tap-mailchimp/pull/72)
 
