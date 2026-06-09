@@ -2,6 +2,7 @@ import unittest
 from unittest.mock import MagicMock, patch
 
 from tap_mailchimp.client import MailchimpForbiddenError
+from tap_mailchimp.__init__ import do_discover
 from tap_mailchimp.discover import (
     CHILD_PARENT_MAP,
     PARENT_STREAM_PATHS,
@@ -209,6 +210,31 @@ class TestDiscover(unittest.TestCase):
 
         # The original dicts returned by get_schemas should be untouched
         self.assertIn('automations', mock_schemas)
+
+
+class TestDoDiscover(unittest.TestCase):
+    """Tests for do_discover() delegation to discover()."""
+
+    @patch('tap_mailchimp.__init__.discover')
+    def test_do_discover_delegates_to_discover(self, mock_discover):
+        """do_discover() calls discover(client) and writes the catalog to stdout."""
+        client = MagicMock()
+        mock_discover.return_value = MagicMock(to_dict=lambda: {})
+
+        with patch('tap_mailchimp.__init__.json'):
+            do_discover(client)
+
+        mock_discover.assert_called_once_with(client)
+
+    @patch('tap_mailchimp.__init__.discover')
+    def test_do_discover_propagates_forbidden_error(self, mock_discover):
+        """MailchimpForbiddenError from discover() (all streams forbidden) propagates."""
+        from tap_mailchimp.client import MailchimpForbiddenError as FE
+        client = MagicMock()
+        mock_discover.side_effect = FE('all forbidden')
+
+        with self.assertRaises(FE):
+            do_discover(client)
 
 
 if __name__ == '__main__':
