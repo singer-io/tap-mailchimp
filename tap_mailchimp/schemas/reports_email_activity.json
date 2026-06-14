@@ -48,6 +48,12 @@
       ],
       "format": "date-time"
     },
+    "_sdc_stitch_timestamp": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "ip": {
       "type": [
         "null",
