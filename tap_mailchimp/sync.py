@@ -271,7 +271,7 @@ def stream_email_activity(client, catalog, state, archive_url, campaign_send_tim
     stream_name = 'reports_email_activity'
     campaign_send_times = campaign_send_times or {}
 
-    def transform_activities(records, campaign_send_time=None):
+    def transform_activities(records, campaign_send_time=None, replication_key_value=None):
         for record in records:
             if 'activity' in record:
                 if '_links' in record:
@@ -279,13 +279,14 @@ def stream_email_activity(client, catalog, state, archive_url, campaign_send_tim
                 record_template = dict(record)
                 del record_template['activity']
 
-                # append sent activity
-                sent_activity = {
-                    'action': 'sent',
-                    'type': '',
-                    'timestamp': campaign_send_time
-                }
-                record['activity'].append(sent_activity)
+                #append sent_activity only if the campaing_id is not present on the reports_email_activity state bookmark
+                if not replication_key_value:
+                    sent_activity = {
+                        'action': 'sent',
+                        'type': '',
+                        'timestamp': campaign_send_time
+                    }
+                    record['activity'].append(sent_activity)
 
                 for activity in record['activity']:
                     new_activity = dict(record_template)
@@ -320,7 +321,7 @@ def stream_email_activity(client, catalog, state, archive_url, campaign_send_tim
                             max_bookmark_field = process_records(
                                 catalog,
                                 stream_name,
-                                transform_activities(email_activities, campaign_send_time),
+                                transform_activities(email_activities, campaign_send_time, last_bookmark),
                                 bookmark_field='timestamp',
                                 max_bookmark_field=last_bookmark)
                             write_bookmark(state,
