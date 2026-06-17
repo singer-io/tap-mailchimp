@@ -1,7 +1,7 @@
 import singer
 from singer.catalog import Catalog, CatalogEntry, Schema
 
-from tap_mailchimp.schema import get_schemas, PKS
+from tap_mailchimp.schema import get_schemas, STREAMS
 from tap_mailchimp.client import MailchimpForbiddenError
 
 LOGGER = singer.get_logger()
@@ -92,7 +92,7 @@ def discover(client):
     for stream_name, schema_dict in schemas.items():
         schema = Schema.from_dict(schema_dict)
         metadata = field_metadata[stream_name]
-        pk = PKS[stream_name]
+        pk = STREAMS[stream_name]['key_properties']
 
         catalog.streams.append(CatalogEntry(
             stream=stream_name,
