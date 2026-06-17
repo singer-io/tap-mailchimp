@@ -2,8 +2,8 @@
 
 
 # 1.4.0
-  * Adds standered metadata [#74](https://github.com/singer-io/tap-mailchimp/pull/74)
-  * Bump dependencies for compliance
+  * Adds standard metadata [#74](https://github.com/singer-io/tap-mailchimp/pull/74)
+  * Bump dependencies requests to 2.34.2 and singer-python to 6.8.0
 
 # 1.3.3
   * Bump requests to 2.33.0 for security updates [#72](https://github.com/singer-io/tap-mailchimp/pull/72)
