@@ -1,3 +1,4 @@
+import copy
 import singer
 from singer.catalog import Catalog, CatalogEntry, Schema
 
@@ -6,39 +7,38 @@ from tap_mailchimp.client import MailchimpForbiddenError
 
 LOGGER = singer.get_logger()
 
-# API paths used to probe read access for each parent stream
+# Parent streams are probed directly for read access during discovery.
 PARENT_STREAM_PATHS = {
     'automations': '/automations',
     'campaigns': '/campaigns',
     'lists': '/lists',
 }
 
-# Maps each child stream to its direct parent stream
+# Child streams inherit access from their parent stream.
 CHILD_PARENT_MAP = {
-    'list_members': 'lists',
-    'list_segments': 'lists',
-    'list_segment_members': 'list_segments',
-    'unsubscribes': 'campaigns',
-    'reports_email_activity': 'campaigns',
+    stream_name: stream_obj.get('parent_stream')
+    for stream_name, stream_obj in STREAMS.items()
+    if stream_obj.get('parent_stream')
 }
-
 
 def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
     """
     Probe each parent stream for read access and remove inaccessible streams
     (and their children) from schemas and field_metadata in place.
-    Raises MailchimpForbiddenError if no parent streams are accessible.
     """
     inaccessible_streams = []
-    for stream_name, path in PARENT_STREAM_PATHS.items():
+
+    for stream_name, endpoint_path in PARENT_STREAM_PATHS.items():
         if stream_name not in schemas:
             continue
+
         try:
-            client.get(path, params={'count': 1}, endpoint=stream_name)
-        except MailchimpForbiddenError:
+            client.get(endpoint_path, params={'count': 1}, endpoint=stream_name)
+        except MailchimpForbiddenError as exc:
             LOGGER.warning(
-                "Stream '%s' does not have read permission, excluding from catalog.",
+                "Excluding unauthorized stream '%s' from catalog. HTTP-Error-Message: '%s'",
                 stream_name,
+                str(exc),
             )
             inaccessible_streams.append(stream_name)
 
@@ -48,18 +48,15 @@ def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
 
     _prune_inaccessible_children(schemas, field_metadata)
 
-    if inaccessible_streams and len(inaccessible_streams) == len(PARENT_STREAM_PATHS):
+    if not any(parent_stream in schemas for parent_stream in PARENT_STREAM_PATHS):
         raise MailchimpForbiddenError(
-            "HTTP-error-code: 403, Error: The account credentials supplied do not have 'read' "
-            "access to any of the streams supported by the tap. Data collection cannot be "
-            "initiated due to lack of permissions."
+            "HTTP-error-code: 403, Error: The credentials do not have 'read' access to any supported streams."
         )
 
     if inaccessible_streams:
         LOGGER.warning(
-            "The account credentials supplied do not have 'read' access to the following "
-            "stream(s): %s. These streams have been excluded from the catalog.",
-            ", ".join(inaccessible_streams),
+            "No 'read' access to stream(s): %s. Excluded from catalog.",
+            ', '.join(inaccessible_streams),
         )
 
 
@@ -68,38 +65,55 @@ def _prune_inaccessible_children(schemas: dict, field_metadata: dict) -> None:
     Remove child streams from the catalog whose parent stream was excluded.
     Mutates schemas and field_metadata in place.
     """
-    for child_name, parent_name in CHILD_PARENT_MAP.items():
-        if child_name in schemas and parent_name not in schemas:
-            LOGGER.warning(
-                "Stream '%s' excluded from catalog because its parent stream '%s' is not accessible.",
-                child_name,
-                parent_name,
-            )
-            schemas.pop(child_name)
-            field_metadata.pop(child_name)
+    while True:
+        streams_to_remove = []
+
+        for stream_name, parent_stream in CHILD_PARENT_MAP.items():
+            if stream_name in schemas and parent_stream not in schemas:
+                LOGGER.warning(
+                    "Stream '%s' excluded from catalog because its parent stream '%s' is not accessible.",
+                    stream_name,
+                    parent_stream,
+                )
+                streams_to_remove.append(stream_name)
+
+        if not streams_to_remove:
+            break
+
+        for stream_name in streams_to_remove:
+            schemas.pop(stream_name, None)
+            field_metadata.pop(stream_name, None)
 
 
-def discover(client):
+def discover(client) -> Catalog:
+    """
+    Run discovery and return a catalog.
+    Streams the credentials cannot access are excluded from the returned catalog.
+    """
     schemas, field_metadata = get_schemas()
-    # Copy to avoid mutating the module-level cache
-    schemas = dict(schemas)
-    field_metadata = dict(field_metadata)
+
+    # Avoid mutating the module-level schema/metadata cache.
+    schemas = copy.copy(schemas)
+    field_metadata = copy.copy(field_metadata)
 
     _apply_access_checks(client, schemas, field_metadata)
 
     catalog = Catalog([])
 
-    for stream_name, schema_dict in schemas.items():
-        schema = Schema.from_dict(schema_dict)
-        metadata = field_metadata[stream_name]
-        pk = STREAMS[stream_name]['key_properties']
+    for stream_name, stream_obj in STREAMS.items():
+        if stream_name not in schemas:
+            continue
 
-        catalog.streams.append(CatalogEntry(
-            stream=stream_name,
-            tap_stream_id=stream_name,
-            key_properties=pk,
-            schema=schema,
-            metadata=metadata
-        ))
+        catalog.streams.append(
+            CatalogEntry(
+                tap_stream_id=stream_name,
+                stream=stream_name,
+                schema=Schema.from_dict(schemas[stream_name]),
+                metadata=field_metadata[stream_name],
+                key_properties=stream_obj.get('key_properties', []),
+                replication_key=(stream_obj.get('replication_keys') or [None])[0],
+                replication_method=stream_obj.get('replication_method'),
+            )
+        )
 
     return catalog
