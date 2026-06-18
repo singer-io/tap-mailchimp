@@ -53,7 +53,7 @@ def get_abs_path(path):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), path)
 
 def get_schemas():
-    """Prepare metadata for each streams and return schema and metadata for the catalog."""
+    """Prepare metadata for each stream and return schema and metadata for the catalog."""
     global SCHEMAS, FIELD_METADATA # pylint: disable=global-statement
 
     if SCHEMAS:
@@ -66,7 +66,6 @@ def get_schemas():
 
         SCHEMAS[stream_name] = schema
 
-        mdata = metadata.new()
         mdata = metadata.get_standard_metadata(
             schema=schema,
             key_properties=stream_obj.get("key_properties"),
