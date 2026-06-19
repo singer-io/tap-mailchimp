@@ -48,7 +48,7 @@ def _apply_access_checks(client, schemas: dict, field_metadata: dict) -> None:
 
     _prune_inaccessible_children(schemas, field_metadata)
 
-    if not any(parent_stream in schemas for parent_stream in PARENT_STREAM_PATHS):
+    if not schemas:
         raise MailchimpForbiddenError(
             "HTTP-error-code: 403, Error: The credentials do not have 'read' access to any supported streams."
         )
@@ -65,9 +65,9 @@ def _prune_inaccessible_children(schemas: dict, field_metadata: dict) -> None:
     Remove child streams from the catalog whose parent stream was excluded.
     Mutates schemas and field_metadata in place.
     """
-    while True:
-        streams_to_remove = []
-
+    removed_stream = True
+    while removed_stream:
+        removed_stream = False
         for stream_name, parent_stream in CHILD_PARENT_MAP.items():
             if stream_name in schemas and parent_stream not in schemas:
                 LOGGER.warning(
@@ -75,14 +75,9 @@ def _prune_inaccessible_children(schemas: dict, field_metadata: dict) -> None:
                     stream_name,
                     parent_stream,
                 )
-                streams_to_remove.append(stream_name)
-
-        if not streams_to_remove:
-            break
-
-        for stream_name in streams_to_remove:
-            schemas.pop(stream_name, None)
-            field_metadata.pop(stream_name, None)
+                schemas.pop(stream_name, None)
+                field_metadata.pop(stream_name, None)
+                removed_stream = True
 
 
 def discover(client) -> Catalog:
