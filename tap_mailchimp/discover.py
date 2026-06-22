@@ -96,7 +96,7 @@ def discover(client) -> Catalog:
     catalog = Catalog([])
 
     for stream_name, schema in schemas.items():
-        stream_obj = STREAMS[stream_name]
+        pk = STREAMS[stream_name]['key_properties']
 
         catalog.streams.append(
             CatalogEntry(
@@ -104,9 +104,7 @@ def discover(client) -> Catalog:
                 stream=stream_name,
                 schema=Schema.from_dict(schema),
                 metadata=field_metadata[stream_name],
-                key_properties=stream_obj.get('key_properties', []),
-                replication_key=(stream_obj.get('replication_keys') or [None])[0],
-                replication_method=stream_obj.get('replication_method'),
+                key_properties=pk,
             )
         )
 
