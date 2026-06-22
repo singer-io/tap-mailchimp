@@ -1,0 +1,2991 @@
+{
+  "streams": [
+    {
+      "tap_stream_id": "automations",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "create_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "start_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "emails_sent": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "recipients": {
+            "properties": {
+              "list_id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "list_is_active": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "list_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "segment_opts": {
+                "properties": {
+                  "saved_segment_id": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "match": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "conditions": {
+                    "items": {
+                      "properties": {
+                        "condition_type": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "op": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "field": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "value": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        }
+                      },
+                      "type": [
+                        "null",
+                        "object"
+                      ],
+                      "additionalProperties": false
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "store_id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "settings": {
+            "properties": {
+              "title": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "from_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "reply_to": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "use_conversation": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "to_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "authenticate": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "auto_footer": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "inline_css": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "tracking": {
+            "properties": {
+              "opens": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "html_clicks": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "text_clicks": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "goal_tracking": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "ecomm360": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "google_analytics": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "clicktale": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "salesforce": {
+                "properties": {
+                  "campaign": {
+                    "type": [
+                      "null",
+                      "boolean"
+                    ]
+                  },
+                  "notes": {
+                    "type": [
+                      "null",
+                      "boolean"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              },
+              "capsule": {
+                "properties": {
+                  "notes": {
+                    "type": [
+                      "null",
+                      "boolean"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "trigger_settings": {
+            "properties": {
+              "workflow_type": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "runtime": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "workflow_title": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "workflow_emails_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": true
+          },
+          "report_summary": {
+            "properties": {
+              "opens": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "unique_opens": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "open_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "clicks": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "subscriber_clicks": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "click_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": true
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "automations",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "create_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "start_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "emails_sent"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "recipients"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "settings"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "tracking"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "trigger_settings"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "report_summary"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "campaigns",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "web_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "create_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "archive_url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "long_archive_url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "emails_sent": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "send_time": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "content_type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "needs_block_refresh": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "has_logo_merge_tag": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "resendable": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "recipients": {
+            "properties": {
+              "list_id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "list_is_active": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "list_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "segment_text": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "recipient_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "segment_opts": {
+                "properties": {
+                  "saved_segment_id": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "prebuilt_segment_id": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "match": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "conditions": {
+                    "items": {
+                      "properties": {
+                        "condition_type": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "op": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "field": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        },
+                        "value": {
+                          "type": [
+                            "null",
+                            "string"
+                          ]
+                        }
+                      },
+                      "type": [
+                        "null",
+                        "object"
+                      ],
+                      "additionalProperties": true
+                    },
+                    "type": [
+                      "null",
+                      "array"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "settings": {
+            "properties": {
+              "subject_line": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "title": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "folder_id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "preview_text": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "from_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "reply_to": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "use_conversation": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "to_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "authenticate": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "auto_footer": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "inline_css": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "auto_tweet": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "fb_comments": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "timewarp": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "template_id": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "drag_and_drop": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "tracking": {
+            "properties": {
+              "opens": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "html_clicks": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "text_clicks": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "goal_tracking": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "ecomm360": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              },
+              "google_analytics": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "clicktale": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "social_card": {
+            "properties": {
+              "image_url": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "description": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "title": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "report_summary": {
+            "properties": {
+              "opens": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "unique_opens": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "open_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "clicks": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "subscriber_clicks": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "click_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "ecommerce": {
+                "properties": {
+                  "total_orders": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "total_spent": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  },
+                  "total_revenue": {
+                    "type": [
+                      "null",
+                      "integer"
+                    ]
+                  }
+                },
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "delivery_status": {
+            "properties": {
+              "enabled": {
+                "type": [
+                  "null",
+                  "boolean"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "campaigns",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "web_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "create_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "archive_url"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "long_archive_url"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "emails_sent"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "send_time"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "content_type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "needs_block_refresh"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "has_logo_merge_tag"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "resendable"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "recipients"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "settings"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "tracking"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "social_card"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "report_summary"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "delivery_status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "lists",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "web_id": {
+            "type": [
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "contact": {
+            "properties": {
+              "company": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "address1": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "address2": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "city": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "state": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "zip": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "country": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "phone": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "permission_reminder": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "use_archive_bar": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "campaign_defaults": {
+            "properties": {
+              "from_name": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "from_email": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "subject": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "language": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "notify_on_subscribe": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "notify_on_unsubscribe": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "date_created": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "list_rating": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "email_type_option": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "subscribe_url_short": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "subscribe_url_long": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "beamer_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "visibility": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "double_optin": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "has_welcome": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "marketing_permissions": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "modules": {
+            "items": {
+              "type": [
+                "string"
+              ]
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "stats": {
+            "properties": {
+              "member_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "unsubscribe_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "cleaned_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "member_count_since_send": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "unsubscribe_count_since_send": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "cleaned_count_since_send": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "campaign_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "campaign_last_sent": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "merge_field_count": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "avg_sub_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "avg_unsub_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "target_sub_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "open_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "click_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "last_sub_date": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "last_unsub_date": {
+                "format": "date-time",
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "lists",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "web_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "contact"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "permission_reminder"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "use_archive_bar"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_defaults"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notify_on_subscribe"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "notify_on_unsubscribe"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "date_created"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_rating"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_type_option"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "subscribe_url_short"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "subscribe_url_long"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "beamer_address"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "visibility"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "double_optin"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "has_welcome"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "marketing_permissions"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "modules"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "stats"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "list_members",
+      "replication_key": "last_changed",
+      "replication_method": "INCREMENTAL",
+      "key_properties": [
+        "id",
+        "list_id"
+      ],
+      "schema": {
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "web_id": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "email_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unique_email_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email_type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unsubscribe_reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "merge_fields": {},
+          "stats": {
+            "properties": {
+              "avg_open_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "avg_click_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "ip_signup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timestamp_signup": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ip_opt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timestamp_opt": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "member_rating": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "last_changed": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "vip": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "email_client": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "location": {
+            "properties": {
+              "latitude": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "longitude": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "gmtoff": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "dstoff": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "country_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "timezone": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "source": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "tags_count": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "tags": {
+            "items": {
+              "properties": {
+                "id": {
+                  "type": [
+                    "integer"
+                  ]
+                },
+                "name": {
+                  "type": [
+                    "null",
+                    "string"
+                  ]
+                }
+              },
+              "type": [
+                "object"
+              ],
+              "additionalProperties": false
+            },
+            "type": [
+              "null",
+              "array"
+            ]
+          },
+          "list_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "list_members",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id",
+              "list_id"
+            ],
+            "forced-replication-method": "INCREMENTAL",
+            "valid-replication-keys": [
+              "last_changed"
+            ],
+            "inclusion": "available",
+            "parent-tap-stream-id": "lists"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "web_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_address"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "unique_email_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "unsubscribe_reason"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "merge_fields"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "stats"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ip_signup"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "timestamp_signup"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ip_opt"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "timestamp_opt"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "member_rating"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_changed"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "language"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "vip"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_client"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "location"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "source"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "tags_count"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "tags"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "list_segments",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "name": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "member_count": {
+            "type": [
+              "null",
+              "integer"
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "created_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "updated_at": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "options": {
+            "properties": {
+              "match": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "conditions": {
+                "items": {
+                  "properties": {
+                    "condition_type": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "field": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "op": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    },
+                    "value": {
+                      "type": [
+                        "null",
+                        "string"
+                      ]
+                    }
+                  },
+                  "type": [
+                    "null",
+                    "object"
+                  ],
+                  "additionalProperties": false
+                },
+                "type": [
+                  "null",
+                  "array"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "list_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "list_segments",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available",
+            "parent-tap-stream-id": "lists"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "name"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "member_count"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "created_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "updated_at"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "options"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "list_segment_members",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "id"
+      ],
+      "schema": {
+        "properties": {
+          "id": {
+            "type": [
+              "string"
+            ]
+          },
+          "email_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "unique_email_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email_type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "status": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "merge_fields": {},
+          "stats": {
+            "properties": {
+              "avg_open_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "avg_click_rate": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "ip_signup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timestamp_signup": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ip_opt": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timestamp_opt": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "member_rating": {
+            "type": [
+              "null",
+              "number"
+            ]
+          },
+          "last_changed": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "language": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "vip": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "email_client": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "interests": {},
+          "location": {
+            "properties": {
+              "latitude": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "longitude": {
+                "type": [
+                  "null",
+                  "number"
+                ]
+              },
+              "gmtoff": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "dstoff": {
+                "type": [
+                  "null",
+                  "integer"
+                ]
+              },
+              "country_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "timezone": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              }
+            },
+            "type": [
+              "null",
+              "object"
+            ],
+            "additionalProperties": false
+          },
+          "list_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "list_segment_members",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "id"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available",
+            "parent-tap-stream-id": "list_segments"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_address"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "unique_email_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "status"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "merge_fields"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "stats"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ip_signup"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "timestamp_signup"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ip_opt"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "timestamp_opt"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "member_rating"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "last_changed"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "language"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "vip"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_client"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "interests"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "location"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "reports_email_activity",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "campaign_id",
+        "action",
+        "email_id",
+        "timestamp"
+      ],
+      "schema": {
+        "properties": {
+          "campaign_id": {
+            "type": [
+              "string"
+            ]
+          },
+          "list_id": {
+            "type": [
+              "string"
+            ]
+          },
+          "list_is_active": {
+            "type": [
+              "boolean"
+            ]
+          },
+          "email_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "action": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "type": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "ip": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "url": {
+            "type": [
+              "null",
+              "string"
+            ]
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "reports_email_activity",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "campaign_id",
+              "action",
+              "email_id",
+              "timestamp"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available",
+            "parent-tap-stream-id": "campaigns"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_is_active"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_address"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "action"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "type"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "timestamp"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "ip"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "url"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    },
+    {
+      "tap_stream_id": "unsubscribes",
+      "replication_method": "FULL_TABLE",
+      "key_properties": [
+        "campaign_id",
+        "email_id"
+      ],
+      "schema": {
+        "properties": {
+          "email_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "email_address": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "merge_fields": {},
+          "vip": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          },
+          "timestamp": {
+            "format": "date-time",
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "reason": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "campaign_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "list_id": {
+            "type": [
+              "null",
+              "string"
+            ]
+          },
+          "list_is_active": {
+            "type": [
+              "null",
+              "boolean"
+            ]
+          }
+        },
+        "type": "object",
+        "additionalProperties": false
+      },
+      "stream": "unsubscribes",
+      "metadata": [
+        {
+          "breadcrumb": [],
+          "metadata": {
+            "table-key-properties": [
+              "campaign_id",
+              "email_id"
+            ],
+            "forced-replication-method": "FULL_TABLE",
+            "valid-replication-keys": [],
+            "inclusion": "available",
+            "parent-tap-stream-id": "campaigns"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "email_address"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "merge_fields"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "vip"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "timestamp"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "reason"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "campaign_id"
+          ],
+          "metadata": {
+            "inclusion": "automatic"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_id"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        },
+        {
+          "breadcrumb": [
+            "properties",
+            "list_is_active"
+          ],
+          "metadata": {
+            "inclusion": "available"
+          }
+        }
+      ]
+    }
+  ]
+}
