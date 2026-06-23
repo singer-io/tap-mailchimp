@@ -60,11 +60,7 @@ def get_bookmark(state, path, default):
             dic = dic[key]
         else:
             return default
-    # A stored null (None) is treated the same as a missing key — fall back to
-    # the default. This prevents a previously written null bookmark (e.g. from
-    # an empty batch result) from being used as `since=None`, which would cause
-    # Mailchimp to return all historical records instead of filtering by date.
-    return dic if dic is not None else default
+    return dic
 
 def nested_set(dic, path, value):
     for key in path[:-1]:
@@ -308,15 +304,9 @@ def stream_email_activity(client, catalog, state, archive_url):
                                 transform_activities(email_activities),
                                 bookmark_field='timestamp',
                                 max_bookmark_field=last_bookmark)
-                            # Only advance the bookmark if we actually processed
-                            # records. If the batch returned an empty emails
-                            # array (e.g. expired token or no new activity),
-                            # max_bookmark_field stays None and we must NOT
-                            # overwrite a previously valid bookmark with None.
-                            if max_bookmark_field is not None:
-                                write_bookmark(state,
-                                               [stream_name, campaign_id],
-                                               max_bookmark_field)
+                            write_bookmark(state,
+                                           [stream_name, campaign_id],
+                                           max_bookmark_field)
                 file = tar.next()
     return failed_campaign_ids
 
