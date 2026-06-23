@@ -4,7 +4,6 @@ from unittest.mock import MagicMock, patch
 from tap_mailchimp.client import MailchimpForbiddenError
 from tap_mailchimp.__init__ import do_discover
 from tap_mailchimp.discover import (
-    CHILD_PARENT_MAP,
     PARENT_STREAM_PATHS,
     _apply_access_checks,
     _prune_inaccessible_children,
