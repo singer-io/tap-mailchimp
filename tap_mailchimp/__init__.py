@@ -18,14 +18,8 @@ REQUIRED_CONFIG_KEYS = [
 ]
 
 def do_discover(client):
-    LOGGER.info('Testing authentication')
-    try:
-        client.get('/lists', params={'count': 1})
-    except Exception as e:
-        raise Exception('Error testing Mailchimp authentication') from e
-
     LOGGER.info('Starting discover')
-    catalog = discover()
+    catalog = discover(client)
     json.dump(catalog.to_dict(), sys.stdout, indent=2)
     LOGGER.info('Finished discover')
 

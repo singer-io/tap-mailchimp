@@ -7,6 +7,10 @@ from singer import metrics
 LOGGER = singer.get_logger()
 
 REQUEST_TIMEOUT = 300
+
+class MailchimpForbiddenError(Exception):
+    pass
+
 class ClientRateLimitError(Exception):
     pass
 
@@ -56,6 +60,16 @@ class MailchimpClient:
         data = self.request('GET',
                             url='https://login.mailchimp.com/oauth2/metadata',
                             endpoint='base_url')
+        # Mailchimp's OAuth metadata endpoint returns HTTP 200 even when the
+        # access_token is invalid or expired — the auth failure is indicated by
+        # the absence of 'api_endpoint' in the response body rather than a
+        # non-2xx status code, so response.raise_for_status() won't catch it.
+        if 'api_endpoint' not in data:
+            raise Exception(
+                'Unable to retrieve Mailchimp API endpoint. '
+                'The OAuth metadata response did not contain "api_endpoint". '
+                'Response: {}'.format(str(data))
+            )
         self.__base_url = data['api_endpoint']
 
     @backoff.on_exception(backoff.expo,
@@ -106,6 +120,10 @@ class MailchimpClient:
 
         if response.status_code == 429:
             raise ClientRateLimitError()
+
+        if response.status_code == 403:
+            raise MailchimpForbiddenError(
+                'HTTP-error-code: 403, Error: {}'.format(response.text))
 
         response.raise_for_status()
 
