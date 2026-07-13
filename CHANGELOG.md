@@ -2,8 +2,11 @@
 
 
 # 1.4.0
-  * Adds standard metadata [#74](https://github.com/singer-io/tap-mailchimp/pull/74)
+  * Allow nullable object fields (e.g. `merge_fields`, `interests`) in stream JSON Schemas [#77](https://github.com/singer-io/tap-mailchimp/pull/77)
+  * Raise a descriptive error when OAuth metadata response is missing `api_endpoint` instead of a silent `KeyError`
+  * Adds standard metadata
   * Bump dependencies requests to 2.34.2 and singer-python to 6.8.0
+  * Exclude 403-inaccessible streams from catalog during discovery
 
 # 1.3.3
   * Bump requests to 2.33.0 for security updates [#72](https://github.com/singer-io/tap-mailchimp/pull/72)

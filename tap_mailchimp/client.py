@@ -7,6 +7,10 @@ from singer import metrics
 LOGGER = singer.get_logger()
 
 REQUEST_TIMEOUT = 300
+
+class MailchimpForbiddenError(Exception):
+    pass
+
 class ClientRateLimitError(Exception):
     pass
 
@@ -116,6 +120,10 @@ class MailchimpClient:
 
         if response.status_code == 429:
             raise ClientRateLimitError()
+
+        if response.status_code == 403:
+            raise MailchimpForbiddenError(
+                'HTTP-error-code: 403, Error: {}'.format(response.text))
 
         response.raise_for_status()
 
