@@ -37,5 +37,6 @@ class MailchimpStartDateTest(StartDateTest, MailchimpBaseTest):
 
     @property
     def start_date_2(self):
-        """More recent start date — should return fewer records."""
-        return "2020-01-01T00:00:00Z"
+        """More recent start date — should return fewer records.
+        """
+        return "2023-01-01T00:00:00Z"

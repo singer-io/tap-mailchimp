@@ -13,22 +13,22 @@ from base import MailchimpBaseTest
 from tap_tester.base_suite_tests.pagination_test import PaginationTest
 
 
-# Streams that are unlikely to have enough data to trigger a second page in
-# a typical test account. Exclude them to avoid false negatives.
-_STREAMS_WITHOUT_ENOUGH_DATA = {
-    "automations",          # typically very few automation workflows
-    "list_segment_members", # depends on parent segments having 1000+ members
-}
-
-
 class MailchimpPaginationTest(PaginationTest, MailchimpBaseTest):
     """
     Ensure tap can replicate multiple pages of data for high-volume streams.
+
+    The test account has small data volumes, so we set page_size=1 so that any
+    stream with ≥2 records exercises multi-page behaviour.
     """
+
+    page_size = 1
 
     @staticmethod
     def name():
         return "tap_tester_mailchimp_pagination_test"
 
     def streams_to_test(self):
-        return self.expected_stream_names().difference(_STREAMS_WITHOUT_ENOUGH_DATA)
+        streams_to_exclude = {
+            "automations",       # typically very few automation workflows
+        }
+        return self.expected_stream_names().difference(streams_to_exclude)

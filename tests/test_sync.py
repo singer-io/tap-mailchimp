@@ -20,7 +20,10 @@ class MailchimpSyncTest(MailchimpBaseTest):
         return "tap_tester_mailchimp_sync_test"
 
     def streams_to_test(self):
-        return self.expected_stream_names()
+        streams_to_exclude = {
+            'automations',  # no data in test account
+        }
+        return self.expected_stream_names().difference(streams_to_exclude)
 
     def test_run(self):
         conn_id = connections.ensure_connection(self)
@@ -37,7 +40,7 @@ class MailchimpSyncTest(MailchimpBaseTest):
         )
 
         found_catalog_names = {c["tap_stream_id"] for c in found_catalogs}
-        diff = self.streams_to_test().symmetric_difference(found_catalog_names)
+        diff = self.streams_to_test() - found_catalog_names
         self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
         print("discovered schemas are OK")
 

@@ -14,4 +14,7 @@ class MailchimpAutomaticFieldsTest(MinimumSelectionTest, MailchimpBaseTest):
         return "tap_tester_mailchimp_automatic_fields_test"
 
     def streams_to_test(self):
-        return self.expected_stream_names()
+        streams_to_exclude = {
+            'automations',  # no data in test account
+        }
+        return self.expected_stream_names().difference(streams_to_exclude)

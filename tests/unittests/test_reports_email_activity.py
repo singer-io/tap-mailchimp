@@ -92,8 +92,8 @@ def _make_client_response(operations):
 
     response_mock = MagicMock()
     response_mock.raw = raw
-    response_mock.__enter__ = lambda s: s
-    response_mock.__exit__ = MagicMock(return_value=False)
+    response_mock.__enter__.return_value = response_mock
+    response_mock.__exit__.return_value = False
 
     client = MagicMock()
     client.request.return_value = response_mock

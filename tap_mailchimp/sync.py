@@ -86,7 +86,8 @@ def sync_endpoint(client,
                   static_params,
                   bookmark_path,
                   bookmark_query_field,
-                  bookmark_field):
+                  bookmark_field,
+                  inject_fields=None):
     bookmark_path = bookmark_path + ['datetime']
     last_datetime = get_bookmark(state, bookmark_path, start_date)
     ids = []
@@ -97,6 +98,8 @@ def sync_endpoint(client,
         if _id:
             ids.append(_id)
         del record['_links']
+        if inject_fields:
+            record.update(inject_fields)
         return record
 
     write_schema(catalog, stream_name)
@@ -179,6 +182,7 @@ def sync_stream(client,
                                                        stream_name)
     if should_stream:
         path = endpoint_config.get('path').format(*id_path)
+        inject_fields = endpoint_config.get('inject_fields')
         stream_ids = sync_endpoint(client,
                                    catalog,
                                    state,
@@ -190,7 +194,8 @@ def sync_stream(client,
                                    endpoint_config.get('params', {}),
                                    bookmark_path,
                                    endpoint_config.get('bookmark_query_field'),
-                                   endpoint_config.get('bookmark_field'))
+                                   endpoint_config.get('bookmark_field'),
+                                   inject_fields.copy() if inject_fields else None)
 
         if endpoint_config.get('store_ids'):
             id_bag[stream_name] = stream_ids
@@ -199,6 +204,16 @@ def sync_stream(client,
         if children:
             for child_stream_name, child_endpoint_config in children.items():
                 for _id in stream_ids:
+                    # Build inject_fields for the child: carry forward any
+                    # fields the parent injected, plus the parent's own id.
+                    parent_inject = endpoint_config.get('inject_fields', {})
+                    child_inject_key = child_endpoint_config.get('inject_field_name')
+                    child_inject = dict(parent_inject)
+                    if child_inject_key:
+                        child_inject[child_inject_key] = _id
+                    child_config = dict(child_endpoint_config)
+                    if child_inject:
+                        child_config['inject_fields'] = child_inject
                     sync_stream(client,
                                 catalog,
                                 state,
@@ -206,7 +221,7 @@ def sync_stream(client,
                                 streams_to_sync,
                                 id_bag,
                                 child_stream_name,
-                                child_endpoint_config,
+                                child_config,
                                 bookmark_path=bookmark_path + [_id, child_stream_name],
                                 id_path=id_path + [_id])
 
@@ -537,7 +552,8 @@ def sync(client, catalog, state, start_date):
                     'children': {
                         'list_segment_members': {
                             'path': '/lists/{}/segments/{}/members',
-                            'data_path': 'members'
+                            'data_path': 'members',
+                            'inject_field_name': 'segment_id'
                         }
                     }
                 }
