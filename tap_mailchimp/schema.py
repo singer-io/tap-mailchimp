@@ -39,6 +39,8 @@ STREAMS = {
             'email_id',
             'timestamp'
         ],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['timestamp'],
         'parent_stream': 'campaigns',
     },
     'unsubscribes': {
