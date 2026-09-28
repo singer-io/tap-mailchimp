@@ -43,6 +43,7 @@
     },
     "timestamp": {
       "type": [
+        "null",
         "string"
       ],
       "format": "date-time"
