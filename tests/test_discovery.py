@@ -1,80 +1,61 @@
-import tap_tester.connections as connections
-import tap_tester.menagerie   as menagerie
-import tap_tester.runner      as runner
-import os
-import unittest
-
-class TestMailchimpDiscovery(unittest.TestCase):
-    def setUp(self):
-        missing_envs = [x for x in [
-            "TAP_MAILCHIMP_CLIENT_ID",
-            "TAP_MAILCHIMP_CLIENT_SECRET",
-            "TAP_MAILCHIMP_ACCESS_TOKEN",
-        ] if os.getenv(x) == None]
-        if len(missing_envs) != 0:
-            raise Exception("Missing environment variables: {}".format(missing_envs))
-
-    def name(self):
-        return "tap_tester_mailchimp_discovery"
-
-    def get_type(self):
-        return "platform.mailchimp"
-
-    def get_credentials(self):
-        return {
-            'client_id': os.getenv('TAP_MAILCHIMP_CLIENT_ID'),
-            'client_secret': os.getenv('TAP_MAILCHIMP_CLIENT_SECRET'),
-            'access_token': os.getenv('TAP_MAILCHIMP_ACCESS_TOKEN')
-        }
-
-    def expected_check_streams(self):
-        """This is a map from stream name to the automatic fields"""
-        return {
-            'campaigns': {'id'},
-            'list_segment_members': {'id'},
-            'list_segments': {'id'},
-            'lists': {'id'},
-            'reports_email_activity': {'campaign_id', 'action', 'email_id', 'timestamp'},
-            'unsubscribes': {'campaign_id', 'email_id'},
-            'automations': {'id'},
-            'list_members': {'id', 'list_id', 'last_changed'}
-        }
-
-    def tap_name(self):
-        return "tap-mailchimp"
+"""Test tap discovery mode and catalog metadata."""
+from base import MailchimpBaseTest
+from tap_tester import menagerie
+from tap_tester.base_suite_tests.discovery_test import DiscoveryTest
 
 
-    def get_properties(self):
-        return {
-            'start_date' : '2019-09-01T00:00:00Z'
-        }
+# Streams that have no parent (i.e. they are root streams, not children).
+_ORPHAN_STREAMS = {"automations", "campaigns", "lists"}
 
-    def test_run(self):
-        conn_id = connections.ensure_connection(self)
 
-        #run in check mode
-        check_job_name = runner.run_check_mode(self, conn_id)
+class MailchimpDiscoveryTest(DiscoveryTest, MailchimpBaseTest):
+    """
+    Verify discovery returns the correct streams, primary keys, replication
+    methods, replication keys, and parent-tap-stream-id metadata.
 
-        #verify check exit codes
-        exit_status = menagerie.get_exit_status(conn_id, check_job_name)
-        menagerie.verify_check_exit_status(self, exit_status, check_job_name)
+    Inherits the standard assertion battery from DiscoveryTest and supplies
+    tap-specific metadata via MailchimpBaseTest.expected_metadata().
+    """
 
-        found_catalogs = menagerie.get_catalogs(conn_id)
-        self.assertGreater(len(found_catalogs), 0, msg="unable to locate schemas for connection {}".format(conn_id))
+    @staticmethod
+    def name():
+        return "tap_tester_mailchimp_discovery_test"
 
-        found_catalog_names = set(map(lambda c: c['tap_stream_id'], found_catalogs))
+    def streams_to_test(self):
+        return self.expected_stream_names()
 
-        diff = set(self.expected_check_streams().keys()).symmetric_difference(found_catalog_names)
-        self.assertEqual(len(diff), 0, msg="discovered schemas do not match: {}".format(diff))
-        print("discovered schemas are OK")
+    def test_parent_stream_metadata(self):
+        """
+        Verify that every child stream's catalog entry carries the correct
+        parent-tap-stream-id in its root metadata breadcrumb.
+        """
+        conn_id = self.conn_id  # set by DiscoveryTest.setUp()
+        for stream, meta in self.expected_metadata().items():
+            expected_parent = meta.get("parent-tap-stream-id")
+            catalog = next(
+                c for c in self.found_catalogs
+                if c["stream_name"] == stream
+            )
+            root_metadata = next(
+                m["metadata"]
+                for m in menagerie.get_annotated_schema(
+                    conn_id, catalog["stream_id"]
+                )["metadata"]
+                if m["breadcrumb"] == []
+            )
 
-        for catalog in found_catalogs:
-            catalog_entry = menagerie.get_annotated_schema(conn_id, catalog['stream_id'])
-            stream = catalog['stream_name']
-            automatic_fields = self.expected_check_streams()[stream]
-
-            for field in automatic_fields:
-                mdata = next((m for m in catalog_entry['metadata']
-                              if len(m['breadcrumb']) == 2 and m['breadcrumb'][1] == field), None)
-                print("Validating inclusion on {}: {}".format(catalog['stream_name'], mdata))
-                self.assertTrue(mdata and mdata['metadata']['inclusion'] == 'automatic')
+            if stream in _ORPHAN_STREAMS:
+                self.assertNotIn(
+                    "parent-tap-stream-id", root_metadata,
+                    msg=f"{stream} should not have a parent-tap-stream-id",
+                )
+            else:
+                self.assertEqual(
+                    root_metadata.get("parent-tap-stream-id"),
+                    expected_parent,
+                    msg=(
+                        f"{stream}: expected parent-tap-stream-id="
+                        f"{expected_parent!r}, got "
+                        f"{root_metadata.get('parent-tap-stream-id')!r}"
+                    ),
+                )
