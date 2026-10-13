@@ -25,11 +25,18 @@ STREAMS = {
         'parent_stream': 'lists',
     },
     'list_segments': {
-        'key_properties': ['id'],
+        'key_properties': [
+            'id',
+            'list_id'
+        ],
         'parent_stream': 'lists',
     },
     'list_segment_members': {
-        'key_properties': ['id'],
+        'key_properties': [
+            'id',
+            'list_id',
+            'segment_id'
+        ],
         'parent_stream': 'list_segments',
     },
     'reports_email_activity': {
@@ -39,6 +46,8 @@ STREAMS = {
             'email_id',
             'timestamp'
         ],
+        'replication_method': 'INCREMENTAL',
+        'replication_keys': ['timestamp'],
         'parent_stream': 'campaigns',
     },
     'unsubscribes': {
