@@ -7,12 +7,6 @@
         "string"
       ]
     },
-    "segment_id": {
-      "type": [
-        "null",
-        "string"
-      ]
-    },
     "email_address": {
       "type": [
         "null",
