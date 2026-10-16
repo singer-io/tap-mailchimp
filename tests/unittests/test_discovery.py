@@ -234,7 +234,3 @@ class TestDoDiscover(unittest.TestCase):
 
         with self.assertRaises(FE):
             do_discover(client)
-
-
-if __name__ == '__main__':
-    unittest.main()
