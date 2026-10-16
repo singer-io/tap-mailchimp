@@ -1,8 +1,7 @@
 # Changelog
 
 # 2.0.0
-  * **Breaking:** Update `key_properties` for `list_segments` and `list_segment_members` to prevent primary key collisions across lists/segments [#79](https://github.com/singer-io/tap-mailchimp/pull/79)
-  * Fix `reports_email_activity` bookmark handling: treat stored `None` bookmarks as missing (fallback to `start_date`) and avoid writing `None` bookmarks for empty batches
+  * Fix `reports_email_activity` bookmark handling: treat stored `None` bookmarks as missing (fallback to `start_date`) and avoid writing `None` bookmarks for empty batches [#79](https://github.com/singer-io/tap-mailchimp/pull/79)
   * Declare `reports_email_activity` as `INCREMENTAL` with replication key `timestamp` in discovery metadata
 
 # 1.4.0
