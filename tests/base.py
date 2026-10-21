@@ -111,7 +111,7 @@ class MailchimpBaseTest(BaseCase):
                 "parent-tap-stream-id":   "lists",
             },
             "list_segment_members": {
-                cls.PRIMARY_KEYS:         {"id"},
+                cls.PRIMARY_KEYS:         {"id", "list_id", "segment_id"},
                 cls.REPLICATION_METHOD:   cls.FULL_TABLE,
                 cls.REPLICATION_KEYS:     set(),
                 cls.OBEYS_START_DATE:     False,

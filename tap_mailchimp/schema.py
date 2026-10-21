@@ -29,7 +29,7 @@ STREAMS = {
         'parent_stream': 'lists',
     },
     'list_segment_members': {
-        'key_properties': ['id'],
+        'key_properties': ['id', 'list_id', 'segment_id'],
         'parent_stream': 'list_segments',
     },
     'reports_email_activity': {

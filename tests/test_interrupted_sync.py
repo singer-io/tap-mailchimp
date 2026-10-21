@@ -120,12 +120,12 @@ class MailchimpInterruptedSyncTest(InterruptedSyncTest, MailchimpBaseTest):
                 assert len(expected_replication_key) == 1
                 expected_replication_key = next(iter(expected_replication_key))
 
-                first_sync_records = [
+                resuming_sync_records = [
                     record['data'] for record in
-                    self.first_sync_records.get(stream, {}).get('messages', [])
+                    self.resuming_sync_records.get(stream, {}).get('messages', [])
                     if record.get('action') == 'upsert']
 
-                if not first_sync_records:
+                if not resuming_sync_records:
                     continue
 
                 stream_bookmark = self.get_bookmark_value(self.manipulate_state(), stream)
@@ -138,7 +138,7 @@ class MailchimpInterruptedSyncTest(InterruptedSyncTest, MailchimpBaseTest):
 
                 actual_oldest = min(
                     self.parse_date(r[expected_replication_key])
-                    for r in first_sync_records)
+                    for r in resuming_sync_records)
 
                 self.assertGreaterEqual(actual_oldest, expected_start,
                                         msg=f"{stream}: oldest record predates expected start")
